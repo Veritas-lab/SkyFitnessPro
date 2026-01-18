@@ -1,63 +1,140 @@
+// app/page.tsx
 import Image from 'next/image';
+/*import Link from 'next/link';*/
+import Header from '@/components/Header';  // предполагается, что Header уже готов
+
+const courses = [
+  {
+    title: 'Йога',
+    duration: '25 дней',
+    time: '20-50 мин/день',
+    complexity: 'Сложность',
+    image: '/img/yoga.png',
+    bgColor: 'bg-yellow-300',
+  },
+  {
+    title: 'Стретчинг',
+    duration: '25 дней',
+    time: '20-50 мин/день',
+    complexity: 'Сложность',
+    image: '/img/stretching.png',
+    bgColor: 'bg-blue-300',
+  },
+  {
+    title: 'Фитнес',
+    duration: '25 дней',
+    time: '20-50 мин/день',
+    complexity: 'Сложность',
+    image: '/img/fitness.png',
+    bgColor: 'bg-orange-300',
+  },
+  {
+    title: 'Степ-аэробика',
+    duration: '25 дней',
+    time: '20-50 мин/день',
+    complexity: 'Сложность',
+    image: '/img/step-aerobics.png',
+    bgColor: 'bg-pink-300',
+  },
+  {
+    title: 'Бодифлекс',
+    duration: '25 дней',
+    time: '20-50 мин/день',
+    complexity: 'Сложность',
+    image: '/img/bodyflex.png',
+    bgColor: 'bg-purple-300',
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-white font-['Roboto']">
+      <Header />
+
+      <main className="relative max-w-[1440px] mx-auto px-6 md:px-10 lg:px-[140px] pt-8 md:pt-0">
+        {/* Заголовок и баннер */}
+        <div className="mt-12 md:mt-32 mb-10 md:mb-16">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-center md:text-left">
+            Начните заниматься спортом
+            <br className="hidden sm:inline" />
+            и улучшите качество жизни
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{' '}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{' '}
-            or the{' '}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{' '}
-            center.
-          </p>
+
+          <div className="inline-block mt-6 md:mt-8 bg-green-100 text-green-800 px-6 md:px-8 py-3 md:py-4 rounded-full text-base md:text-lg font-medium">
+            Измените своё тело за полгода!
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Блок карточек */}
+        <div
+          className="
+            grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 
+            gap-6 md:gap-8 lg:gap-[24px]
+            mt-[350px] lg:mt-[350px]
+            -ml-6 md:ml-0 lg:ml-0
+          "
+        >
+          {courses.map((course) => (
+            <div
+              key={course.title}
+              className={`
+                relative rounded-[30px] overflow-hidden
+                w-full max-w-[360px] h-[501px]
+                shadow-[0_4px_67px_-12px_rgba(0,0,0,0.13)]
+                flex flex-col
+                ${course.bgColor}
+                mx-auto lg:mx-0
+              `}
+            >
+              {/* Фото */}
+              <div className="relative h-[60%] bg-gray-200">
+                <Image
+                  src={course.image}
+                  alt={course.title}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
+                  priority={course.title === 'Йога'} // можно первую загрузить быстрее
+                />
+              </div>
+
+              {/* Информация */}
+              <div className="flex flex-col flex-1 p-6 pb-[15px] bg-white gap-4">
+                <h3 className="text-xl md:text-2xl font-semibold">{course.title}</h3>
+
+                <div className="flex items-center text-sm md:text-base text-gray-600 gap-3">
+                  <span>{course.duration}</span>
+                  <span className="text-gray-400">•</span>
+                  <span>{course.time}</span>
+                </div>
+
+                <div className="mt-auto text-sm md:text-base text-blue-600 font-medium">
+                  {course.complexity}
+                </div>
+              </div>
+
+              {/* Кнопка + */}
+              <button
+                className="
+                  absolute top-5 right-5
+                  bg-white rounded-full
+                  w-10 h-10 md:w-12 md:h-12
+                  flex items-center justify-center
+                  shadow-md hover:bg-gray-100
+                  transition text-2xl md:text-3xl font-bold
+                "
+              >
+                +
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Кнопка Наверх */}
+        <div className="mt-16 md:mt-24 pb-12 text-center">
+          <button className="px-10 py-5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-full transition text-lg">
+            Наверх ↑
+          </button>
         </div>
       </main>
     </div>
