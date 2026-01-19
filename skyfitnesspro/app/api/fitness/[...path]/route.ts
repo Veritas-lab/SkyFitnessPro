@@ -147,9 +147,7 @@ async function handleRequest(
 
     // Получаем заголовки авторизации
     const authHeader = request.headers.get('authorization');
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
+    const headers: HeadersInit = {};
     
     if (authHeader) {
       headers['Authorization'] = authHeader;
