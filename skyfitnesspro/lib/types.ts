@@ -1,5 +1,5 @@
 // lib/types.ts
-import z from "zod"; 
+import { z } from "zod"; 
 export interface User {
     email: string;
     selectedCourses: string[]; // массив id курсов
@@ -50,7 +50,13 @@ export interface User {
     password: z.string()
       .min(6, "Пароль должен содержать не менее 6 символов")
       .regex(/[A-Z]/, "Пароль должен содержать как минимум одну заглавную букву")
-      .regex(/[^A-Za-z0-9]/g, { message: "Пароль должен содержать не менее 2 спецсимволов" }),
+      .refine(
+        (val) => {
+          const specialChars = val.match(/[^A-Za-z0-9]/g) || [];
+          return specialChars.length >= 2;
+        },
+        { message: "Пароль должен содержать не менее 2 спецсимволов" }
+      ),
   });
   
   export const loginSchema = registerSchema; // можно использовать ту же схему

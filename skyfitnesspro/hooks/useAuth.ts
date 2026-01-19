@@ -1,9 +1,9 @@
 // hooks/useAuth.ts
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import api from '@/lib/api';
+import { authApi, usersApi } from '@/lib/api';
 import { User } from '@/lib/types';
-import { getErrorMessage } from '@/lib/utils'; // ← новая утилита
+import { getErrorMessage } from '@/lib/utils';
 
 interface AuthState {
   user: User | null;
@@ -21,48 +21,72 @@ export function useAuth() {
   });
 
   const router = useRouter();
+  const loadingRef = useRef(false);
+  const mountedRef = useRef(true);
 
   // Загрузка пользователя при монтировании
   useEffect(() => {
+    // Проверяем, что мы в браузере
+    if (typeof window === 'undefined') {
+      setState(prev => ({ ...prev, isLoading: false }));
+      return;
+    }
+
+    // Защита от множественных одновременных запросов
+    if (loadingRef.current) return;
+    
     const loadUser = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
-        setState(prev => ({ ...prev, isLoading: false, isAuthenticated: false }));
+        if (mountedRef.current) {
+          setState(prev => ({ ...prev, isLoading: false, isAuthenticated: false }));
+        }
         return;
       }
 
       try {
-        const res = await api.get('/users/me');
-        setState({
-          user: res.data,
-          isLoading: false,
-          error: null,
-          isAuthenticated: true,
-        });
+        loadingRef.current = true;
+        const res = await usersApi.getMe();
+        if (mountedRef.current) {
+          setState({
+            user: res.data,
+            isLoading: false,
+            error: null,
+            isAuthenticated: true,
+          });
+        }
       } catch (err: unknown) {
         localStorage.removeItem('token');
         const message = getErrorMessage(err);
-        setState({
-          user: null,
-          isLoading: false,
-          error: message || 'Сессия истекла',
-          isAuthenticated: false,
-        });
+        if (mountedRef.current) {
+          setState({
+            user: null,
+            isLoading: false,
+            error: message || 'Сессия истекла',
+            isAuthenticated: false,
+          });
+        }
+      } finally {
+        loadingRef.current = false;
       }
     };
 
     loadUser();
+
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const res = await api.post('/auth/login', { email, password });
+      const res = await authApi.login(email, password);
       const { token } = res.data;
 
       localStorage.setItem('token', token);
-      const userRes = await api.get('/users/me');
+      const userRes = await usersApi.getMe();
 
       setState({
         user: userRes.data,
@@ -84,7 +108,7 @@ export function useAuth() {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      await api.post('/auth/register', { email, password });
+      await authApi.register(email, password);
       // После успешной регистрации сразу логинимся
       return await login(email, password);
     } catch (err: unknown) {

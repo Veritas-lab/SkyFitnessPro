@@ -1,57 +1,161 @@
+'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Header() {
+  const { isAuthenticated, logout, isLoading } = useAuth();
+
+  // Показываем простой заголовок во время загрузки
+  if (isLoading) {
   return (
-    <header className="flex items-start justify-between px-6 py-4 bg-white border-b shadow-sm relative">
+      <header 
+        className="bg-white border-b shadow-sm relative"
+        style={{
+          width: '1160px',
+          height: '120px',
+          position: 'absolute',
+          top: '0px',
+          left: '140px',
+        }}
+      >
+        <div 
+          className="flex flex-col items-start"
+          style={{
+            position: 'absolute',
+            top: '50px',
+            left: '0px',
+          }}
+        >
+          <div className="h-[35px] w-[220px] bg-gray-200 animate-pulse rounded" />
+        </div>
+        <div 
+          style={{
+            position: 'absolute',
+            top: '50px',
+            right: '0px',
+          }}
+        >
+          <div className="h-[52px] w-[103px] bg-gray-200 animate-pulse rounded-full" />
+        </div>
+      </header>
+    );
+  }
+
+  return (
+    <header 
+      className="bg-white border-b shadow-sm relative"
+      style={{
+        width: '1160px',
+        height: '120px',
+        marginBottom: '60px',
+        position: 'absolute',
+        top: '0px',
+        left: '140px',
+      }}
+    >
       {/* Левая часть: логотип + текст */}
-      <div className="flex flex-col items-start mt-[50px] ml-[140px]">
-        <Image
-          src="/img/logo.svg"
-          alt="SkyFitnessPro"
-          width={220}
-          height={35}
-          priority
-        />
+      <div 
+        className="flex flex-col items-start"
+        style={{
+          position: 'absolute',
+          top: '50px',
+          left: '0px',
+        }}
+      >
+        <Link href="/">
+          <Image
+            src="/img/logo.svg"
+            alt="SkyFitnessPro"
+            width={220}
+            height={35}
+            priority
+            className="cursor-pointer"
+            style={{
+              width: '220px',
+              height: '35px',
+            }}
+          />
+        </Link>
         <span
-          className="
-            mt-[15px]
-            hidden md:block
-            font-['Roboto']
-            font-normal
-            text-[18px]
-            leading-[110%]
-            text-gray-600
-          "
+          className="hidden md:block"
+          style={{
+            fontFamily: 'Roboto',
+            fontWeight: 400,
+            fontSize: '18px',
+            lineHeight: '110%',
+            letterSpacing: '0px',
+            color: '#000000',
+            marginTop: '15px',
+          }}
         >
           Онлайн-тренировки для занятий дома
         </span>
       </div>
 
-      {/* Кнопка "Войти" — ТОЧНО по макету */}
-      <Link
-        href="/login"
-        className="
-          absolute                    /* позиционирование по макету */
-          top-[50px]                  /* top: 50px */
-          left-[1197px]               /* left: 1197px */
-          w-[103px]                   /* width: 103px */
-          h-[52px]                    /* height: 52px */
-          rounded-[46px]              /* border-radius: 46px */
-          pt-[16px] px-[26px] pb-[16px]  /* padding: 16px 26px 16px */
-          flex items-center justify-center gap-[8px]  /* gap: 8px + центрирование */
-          bg-[#BCEC30]                /* background: #BCEC30 */
-          text-black                   /* текст чёрный (подбери по макету) */
-          font-medium
-          hover:bg-[#a8d228]          /* hover эффект чуть темнее */
-          transition-all duration-200
-          opacity-100                 /* opacity: 1 */
-          shadow-sm hover:shadow-md
-        "
+      {/* Правая часть: кнопки */}
+      <div 
+        className="flex items-center"
+        style={{
+          position: 'absolute',
+          top: '50px',
+          right: '0px',
+        }}
       >
-        Войти
-      </Link>
+        {isAuthenticated ? (
+          <>
+            <Link
+              href="/profile"
+              className="
+                px-6 py-3
+                rounded-[46px]
+                bg-gray-100
+                text-black
+                font-medium
+                hover:bg-gray-200
+                transition-all duration-200
+              "
+            >
+              Профиль
+            </Link>
+            <button
+              onClick={logout}
+              className="
+                px-6 py-3
+                rounded-[46px]
+                bg-[#BCEC30]
+                text-black
+                font-medium
+                hover:bg-[#a8d228]
+                transition-all duration-200
+                shadow-sm hover:shadow-md
+              "
+            >
+              Выйти
+            </button>
+          </>
+        ) : (
+          <Link
+            href="/auth"
+            className="flex items-center justify-center text-black font-medium hover:bg-[#a8d228] transition-all duration-200 shadow-sm hover:shadow-md"
+            style={{
+              width: '103px',
+              height: '52px',
+              borderRadius: '46px',
+              paddingTop: '16px',
+              paddingRight: '26px',
+              paddingBottom: '16px',
+              paddingLeft: '26px',
+              gap: '8px',
+              background: '#BCEC30',
+              opacity: 1,
+            }}
+          >
+            Войти
+          </Link>
+        )}
+      </div>
     </header>
   );
 }
