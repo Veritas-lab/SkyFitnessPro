@@ -45,28 +45,63 @@ export interface User {
   }
   
   // Для форм (Zod + react-hook-form)
-  const basePasswordSchema = z.string()
-    .min(6, "Пароль должен содержать не менее 6 символов")
-    .regex(/[A-Z]/, "Пароль должен содержать как минимум одну заглавную букву")
-    .refine(
-      (val) => {
-        const specialChars = val.match(/[^A-Za-z0-9]/g) || [];
-        return specialChars.length >= 2;
-      },
-      { message: "Пароль должен содержать не менее 2 спецсимволов" }
-    );
+  // Сообщения об ошибках соответствуют документации API
+  // Согласно документации: POST /api/fitness/auth/register
+  // Требования к паролю:
+  // - Не менее 6 символов
+  // - Не менее двух спецсимволов
+  // - Не менее одной заглавной буквы
+  const basePasswordSchema = z
+    .string()
+    .min(1, "Введите пароль")
+    .superRefine((val, ctx) => {
+      // Проверяем все требования к паролю
+      // Zod покажет все ошибки, но react-hook-form покажет только первую для каждого поля
+      if (val.length < 6) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Пароль должен содержать не менее 6 симоволов", // Опечатка в документации API сохранена
+        });
+      }
+      
+      if (!/[A-Z]/.test(val)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Пароль должен содержать как минимум одну заглавную букву",
+        });
+      }
+      
+      const specialChars = val.match(/[^A-Za-z0-9]/g) || [];
+      if (specialChars.length < 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Пароль должен содержать не менее 2 спецсимволов",
+        });
+      }
+    });
 
+  // Схема регистрации согласно документации API
+  // Ошибки Email: "Введите корректный Email", "Пользователь с таким email уже существует"
+  // Ошибки пароля: см. basePasswordSchema
   export const registerSchema = z.object({
-    email: z.string().email("Введите корректный Email"),
+    email: z
+      .string()
+      .min(1, "Введите Email")
+      .email("Введите корректный Email"), // Сообщение из документации API
     password: basePasswordSchema,
-    confirmPassword: z.string(),
+    confirmPassword: z.string().min(1, "Повторите пароль"),
   }).refine((data) => data.password === data.confirmPassword, {
     message: "Пароли не совпадают",
     path: ["confirmPassword"],
   });
   
+  // Схема входа согласно документации API
+  // Ошибки: "Пользователь с таким email не найден", "Неверный пароль"
   export const loginSchema = z.object({
-    email: z.string().email("Введите корректный Email"),
+    email: z
+      .string()
+      .min(1, "Введите Email")
+      .email("Введите корректный Email"),
     password: z.string().min(1, "Введите пароль"),
   });
   

@@ -16,9 +16,13 @@ api.interceptors.request.use((config) => {
 });
 
 // Auth
+// Согласно документации API:
+// POST /api/fitness/auth/register - регистрация
+// POST /api/fitness/auth/login - авторизация
+// Ошибки возвращаются с кодом 404 в формате { "message": "..." }
 export const authApi = {
   register: (email: string, password: string) =>
-    api.post('/auth/register', { email, password }),
+    api.post<{ message: string }>('/auth/register', { email, password }),
   login: (email: string, password: string) =>
     api.post<{ token: string }>('/auth/login', { email, password }),
 };

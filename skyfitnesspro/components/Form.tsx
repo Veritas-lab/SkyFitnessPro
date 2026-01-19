@@ -18,10 +18,16 @@ export default function Form({ mode, onModeChange }: FormProps) {
   
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    mode: 'onSubmit', // Валидация только при отправке формы
+    reValidateMode: 'onBlur', // Повторная валидация при потере фокуса после первой попытки
+    shouldFocusError: false, // Не фокусироваться на ошибке автоматически
   });
   
   const registerForm = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    mode: 'onSubmit', // Валидация только при отправке формы
+    reValidateMode: 'onBlur', // Повторная валидация при потере фокуса после первой попытки
+    shouldFocusError: false, // Не фокусироваться на ошибке автоматически
   });
 
   const form = mode === 'login' ? loginForm : registerForm;
@@ -44,7 +50,7 @@ export default function Form({ mode, onModeChange }: FormProps) {
     } else {
       registerForm.reset();
     }
-  }, [mode]);
+  }, [mode, loginForm, registerForm]);
 
   return (
     <div
@@ -83,7 +89,11 @@ export default function Form({ mode, onModeChange }: FormProps) {
             {...form.register('email')}
             type="email"
             id="email"
-            className="w-full px-4 py-3 border border-gray-300 rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white"
+            className={`w-full px-4 py-3 border rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white ${
+              form.formState.errors.email || (error && error.includes('email')) || (error && error.includes('Email'))
+                ? 'border-red-500'
+                : 'border-gray-300'
+            }`}
             placeholder={mode === 'login' ? 'Логин' : 'Эл. почта'}
             style={{
               borderRadius: '30px',
@@ -100,7 +110,11 @@ export default function Form({ mode, onModeChange }: FormProps) {
             {...form.register('password')}
             type="password"
             id="password"
-            className="w-full px-4 py-3 border border-gray-300 rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white"
+            className={`w-full px-4 py-3 border rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white ${
+              form.formState.errors.password || (error && (error.includes('пароль') || error.includes('Пароль')))
+                ? 'border-red-500'
+                : 'border-gray-300'
+            }`}
             placeholder="Пароль"
             style={{
               borderRadius: '30px',
@@ -118,7 +132,11 @@ export default function Form({ mode, onModeChange }: FormProps) {
               {...form.register('confirmPassword')}
               type="password"
               id="confirmPassword"
-              className="w-full px-4 py-3 border border-gray-300 rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white"
+              className={`w-full px-4 py-3 border rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white ${
+                form.formState.errors.confirmPassword
+                  ? 'border-red-500'
+                  : 'border-gray-300'
+              }`}
               placeholder="Повторите пароль"
               style={{
                 borderRadius: '30px',

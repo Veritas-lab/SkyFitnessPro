@@ -8,33 +8,21 @@ export function getErrorMessage(error: unknown): string {
     const serverMessage = error.response?.data?.message;
     const status = error.response?.status;
 
+    // Согласно документации API, ошибки auth endpoints возвращаются с 404
+    // Приоритет отдаём сообщению от сервера
+    if (typeof serverMessage === 'string') {
+      return serverMessage;
+    }
+
+    // Стандартные HTTP ошибки
     if (status === 401) return 'Сессия истекла. Пожалуйста, войдите заново.';
     if (status === 403) return 'Доступ запрещён.';
+    if (status === 404) return 'Ресурс не найден.';
     if (status === 429) return 'Слишком много запросов. Попробуйте позже.';
     if (status === 500) return 'Ошибка сервера. Попробуйте позже.';
     if (status === 502) return 'Ошибка сети. Попробуйте позже.';
     if (status === 503) return 'Сервис временно недоступен. Попробуйте позже.';
     if (status === 504) return 'Время ожидания запроса истекло. Попробуйте позже.';
-    if (status === 507) return 'Недостаточно места на диске. Попробуйте позже.';
-    if (status === 508) return 'Запрос превысил лимит времени. Попробуйте позже.';
-    if (status === 509) return 'Превышен лимит трафика. Попробуйте позже.';
-    if (status === 510) return 'Недостаточно прав. Попробуйте позже.';
-    if (status === 511) return 'Недостаточно средств. Попробуйте позже.';
-    if (status === 512) return 'Недостаточно ресурсов. Попробуйте позже.';
-    if (status === 513) return 'Недостаточно памяти. Попробуйте позже.';
-    if (status === 514) return 'Недостаточно процессов. Попробуйте позже.';
-    if (status === 515) return 'Недостаточно времени. Попробуйте позже.';
-    if (status === 516) return 'Недостаточно памяти. Попробуйте позже.';
-    if (status === 517) return 'Недостаточно процессов. Попробуйте позже.';
-    if (status === 518) return 'Недостаточно времени. Попробуйте позже.';
-    if (status === 519) return 'Недостаточно памяти. Попробуйте позже.';
-    if (status === 520) return 'Недостаточно процессов. Попробуйте позже.';
-    if (status === 521) return 'Недостаточно времени. Попробуйте позже.';
-    if (status === 522) return 'Недостаточно памяти. Попробуйте позже.';
-
-    if (typeof serverMessage === 'string') {
-      return serverMessage;
-    }
 
     // Если нет — берём стандартное сообщение axios
     return error.message || 'Ошибка запроса к серверу';
