@@ -110,17 +110,18 @@ async function handleRequest(
 ) {
   const path = pathSegments.join('/');
   
-  // Если API не настроен, используем мок-данные для разработки
+  // Если API URL не настроен, API находится на том же домене по пути /api/fitness
+  // В этом случае используем мок-данные для /courses или возвращаем ошибку
   if (!API_BASE_URL) {
     // Мок для GET /courses
     if (method === 'GET' && path === 'courses') {
       return NextResponse.json(MOCK_COURSES, { status: 200 });
     }
     
-    // Для других endpoints возвращаем ошибку
+    // Для других endpoints возвращаем ошибку, так как API должен быть настроен
     return NextResponse.json(
       { 
-        message: 'API URL не настроен. Установите переменную окружения NEXT_PUBLIC_API_URL в .env.local. Используются мок-данные для /courses.' 
+        message: 'API находится на том же домене. Убедитесь, что API routes настроены правильно или установите NEXT_PUBLIC_API_URL для внешнего API.' 
       },
       { status: 500 }
     );
@@ -130,6 +131,8 @@ async function handleRequest(
     // Получаем query параметры
     const searchParams = request.nextUrl.searchParams;
     const queryString = searchParams.toString();
+    
+    // Формируем URL для внешнего API
     const url = `${API_BASE_URL}/${path}${queryString ? `?${queryString}` : ''}`;
 
     // Получаем тело запроса (если есть)
