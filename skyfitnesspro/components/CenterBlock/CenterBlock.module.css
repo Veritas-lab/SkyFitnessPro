@@ -1,0 +1,138 @@
+.center__container {
+    max-width: 1160px;
+    width: 100%;
+    margin: 0 auto;
+    margin: 0 auto;
+    background-color: #ffffff;
+    @media screen and (max-width: 495px) {
+      width: 100%;
+      padding: 0px 16px;
+    }
+  }
+  
+  .center__block {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .center__title {
+    font-size: 60px;
+    font-weight: 500;
+    color: #000000;
+    @media screen and (max-width: 495px) {
+      font-size: 32px;
+    }
+  }
+  
+  .center__textBlock {
+    @media screen and (max-width: 495px) {
+      display: none;
+    }
+  }
+  
+  .center__text {
+    font-size: 32px;
+    font-weight: 400;
+    color: #202020;
+    background: #bcec30;
+    line-height: 110%;
+    padding: 16px 20px;
+  }
+  
+  .center__img {
+    position: relative;
+    top: -15;
+    left: 114;
+  }
+  
+  .center__course {
+    position: relative;
+    width: 360px;
+    border-radius: 30px;
+    box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+    @media screen and (max-width: 495px) {
+      width: 100%;
+    }
+  }
+  .center__courseIMG {
+    position: relative;
+    width: 360px;
+    height: 325px;
+    @media screen and (max-width: 495px) {
+      width: 100%;
+    }
+  }
+  .course__add__svg {
+    width: 32px;
+    height: 32px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+  }
+  
+  .course__block {
+    padding: 24px 30px 15px;
+    @media screen and (max-width: 495px) {
+      padding: 24px 21.5px 15px;
+    }
+  }
+  
+  .course__title {
+    font-size: 32px;
+    font-weight: 500;
+    margin-bottom: 20px;
+  }
+  
+  .course__course {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  
+  .course__blockAbout {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .course__about {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 50px;
+    background: #f7f7f7;
+  }
+  
+  .course__svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .course__progress {
+    height: 6px;
+    border-radius: 50px;
+    background: #f7f7f7;
+    margin-bottom: 40px;
+  }
+  
+  .course__progressText {
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 110%;
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .center__button {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }

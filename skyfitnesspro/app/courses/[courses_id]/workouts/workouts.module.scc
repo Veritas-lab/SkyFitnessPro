@@ -1,0 +1,63 @@
+.workoutContainer {
+  max-width: 1160px;
+  width: 100%;
+  margin: 0 auto;
+  margin: 0 auto;
+  background-color: #ffffff;
+  @media screen and (max-width: 495px) {
+    width: 100%;
+    padding: 0px 16px;
+  }
+}
+
+.workoutTitle {
+  font-weight: 600;
+  font-size: 60px;
+  margin-bottom: 40px;
+  @media screen and (max-width: 495px) {
+    font-weight: 500;
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+}
+.videoBlock {
+  height: 639px;
+  border-radius: 16px;
+}
+.exercisesBlock {
+  border-radius: 30px;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  padding: 40px;
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  @media screen and (max-width: 495px) {
+    padding: 30px;
+    margin-top: 24px;
+  }
+}
+.exercisesBlockTitle {
+  font-weight: 400;
+  font-size: 32px;
+  margin-bottom: 20px;
+  line-height: 110%;
+}
+
+.exercisesBlockUl {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 34px;
+  list-style-type: none;
+  @media screen and (max-width: 495px) {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+.exercisesBlockList {
+  font-weight: 400;
+  font-size: 18px;
+  margin-bottom: 20px;
+  line-height: 110%;
+}

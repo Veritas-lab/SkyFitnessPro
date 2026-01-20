@@ -10,9 +10,10 @@ import Image from 'next/image';
 interface FormProps {
   mode: 'login' | 'register';
   onModeChange: (mode: 'login' | 'register') => void;
+  onSuccess?: () => void;
 }
 
-export default function Form({ mode, onModeChange }: FormProps) {
+export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
   const { login, register, error } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -92,13 +93,18 @@ export default function Form({ mode, onModeChange }: FormProps) {
     // Очищаем предыдущие ошибки
     form.clearErrors();
     
+    let success = false;
     if (mode === 'login') {
-      await login(data.email, data.password);
+      success = await login(data.email, data.password);
     } else {
       const registerData = data as RegisterFormData;
-      await register(registerData.email, registerData.password);
+      success = await register(registerData.email, registerData.password);
     }
     setIsLoading(false);
+    
+    if (success && onSuccess) {
+      onSuccess();
+    }
   };
 
   // Сброс формы и очистка ошибок при смене режима

@@ -1,0 +1,44 @@
+.modal {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 150px;
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 4px;
+}
+
+.modalLink {
+  padding: 8px 16px;
+  text-decoration: none;
+  color: #000;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.modalLink:hover {
+  background: #f5f5f5;
+}
+
+.logoutButton {
+  padding: 8px 16px;
+  background: #bcec30;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.logoutButton:hover {
+  background: #a8d228;
+}

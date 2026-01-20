@@ -1,0 +1,245 @@
+.course__conteiner {
+    max-width: 1160px;
+    width: 100%;
+    margin: 0 auto;
+    margin: 0 auto;
+    background-color: #ffffff;
+    @media screen and (max-width: 495px) {
+      width: 100%;
+      padding: 0px 16px;
+    }
+  }
+  
+  .course__ImagedescTop {
+    @media screen and (max-width: 495px) {
+      display: none;
+    }
+  }
+  
+  .course__ImageMob {
+    display: none;
+    @media screen and (max-width: 495px) {
+      display: block;
+    }
+  }
+  
+  .course__desc {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 17px;
+  }
+  
+  .course__descTitle {
+    font-weight: 600;
+    font-size: 40px;
+    margin: 60px 0 40px;
+    @media screen and (max-width: 495px) {
+      font-weight: 500;
+      font-size: 24px;
+      margin: 40px 0 24px;
+    }
+  }
+  
+  .course__descBlock {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: left;
+    flex-wrap: nowrap;
+    gap: 25px;
+    padding: 20px;
+    background: linear-gradient(#151720, #1e212e);
+    border-radius: 28px;
+    border: none;
+    max-width: 370px;
+    @media screen and (max-width: 495px) {
+      /* width: 343px; */
+      width: 100%;
+    }
+  }
+  
+  .course__descNumb {
+    font-weight: 600;
+    font-size: 75px;
+    line-height: 135%;
+    color: #bcec30;
+    @media screen and (max-width: 495px) {
+      font-weight: 500;
+    }
+  }
+  
+  .course__descText {
+    font-weight: 400;
+    font-size: 24px;
+    line-height: 110%;
+    color: #ffffff;
+    @media screen and (max-width: 495px) {
+      font-size: 18px;
+    }
+  }
+  
+  .course__category {
+    background: #bcec30;
+    border-radius: 28px;
+    padding: 30px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 34px;
+    @media screen and (max-width: 495px) {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+  }
+  
+  .course__categoryName {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .course__categorySvg {
+    width: 26px;
+    height: 19.5px;
+  }
+  
+  .course__categoryText {
+    font-weight: 400;
+    font-size: 24px;
+    line-height: 110%;
+    color: #000000;
+    @media screen and (max-width: 495px) {
+      font-size: 18px;
+    }
+  }
+  
+  .course__way {
+    border-radius: 30px;
+    box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+    padding: 40px;
+    margin-top: 102px;
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    background: #fff;
+    @media screen and (max-width: 495px) {
+      padding: 30px;
+      margin-top: 156px;
+      z-index: 1;
+    }
+  }
+  
+  .course__wayBlock {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 28px;
+    width: 437px;
+    @media screen and (max-width: 495px) {
+      width: 343px;
+    }
+  }
+  
+  .course__wayTitle {
+    font-weight: 500;
+    font-size: 60px;
+    line-height: 100%;
+    color: #000000;
+    @media screen and (max-width: 495px) {
+      font-size: 32px;
+      line-height: 110%;
+    }
+  }
+  
+  .course__wayList {
+    padding-left: 40px;
+    @media screen and (max-width: 495px) {
+      padding-left: 30px;
+    }
+  }
+  
+  .course__wayText {
+    font-weight: 400;
+    font-size: 24px;
+    line-height: 110%;
+    color: gray;
+    margin-bottom: 12px;
+    @media screen and (max-width: 495px) {
+      margin-bottom: 9px;
+      font-size: 18px;
+    }
+  }
+  
+  .course__groupImageMob {
+    @media screen and (max-width: 495px) {
+      position: relative;
+    }
+  }
+  
+  .course__manMob {
+    display: none;
+    @media screen and (max-width: 495px) {
+      display: block;
+      width: 482px;
+      height: 455px;
+      position: absolute;
+      bottom: -352px;
+      left: -10px;
+      overflow: hidden;
+      z-index: 1;
+    }
+  }
+  
+  .course__groupImage {
+    position: relative;
+    @media screen and (max-width: 495px) {
+      display: none;
+    }
+  }
+  
+  .course__svgMan {
+    width: 519px;
+    height: 539px;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    z-index: 2;
+    @media screen and (max-width: 495px) {
+      width: 288.77px;
+      height: 288.77px;
+      top: -186px;
+      width: 313.22px;
+      height: 348.9px;
+      z-index: 2;
+    }
+  }
+  
+  .course__svgBlack {
+    width: 50px;
+    height: 42.5px;
+    top: 180px;
+    right: 378px;
+    position: absolute;
+    z-index: 0;
+    @media screen and (max-width: 495px) {
+      width: 32.16px;
+      height: 27.33px;
+      left: -209px;
+    }
+  }
+  
+  .course__svgGreen {
+    width: 670px;
+    height: 390px;
+    top: 236px;
+    position: absolute;
+    right: -25;
+    z-index: 1;
+    @media screen and (max-width: 495px) {
+      width: 431.03px;
+      height: 251.47px;
+      left: -209px;
+      z-index: 1;
+    }
+  }
