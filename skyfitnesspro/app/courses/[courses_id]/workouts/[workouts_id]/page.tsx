@@ -6,7 +6,7 @@ import { AxiosError } from 'axios';
 import styles from './workouts.module.css';
 import { useAppSelector } from '@/store/store';
 import { Workout } from '@/lib/types';
-import { workoutsApi } from '@/lib/api';
+import { workoutsApi, progressApi } from '@/lib/api';
 import Header from '@/components/Header/Header';
 import BaseButton from '@/components/Button/Button';
 import ModalProgress from '@/components/ModalProgress/ModalProgress';
@@ -28,18 +28,39 @@ export default function WorkoutPage() {
   const [currentProgress, setCurrentProgress] = useState<number[]>([]);
 
   useEffect(() => {
-    if (!workoutId || !token) {
+    if (!workoutId) {
+      setIsLoading(false);
       return;
     }
 
-    workoutsApi
-      .getById(workoutId)
-      .then((response) => {
-        const data = response.data;
-        setWorkoutData(data);
-        setCurrentProgress(new Array(data.exercises.length).fill(0));
-      })
-      .catch((error: unknown) => {
+    const loadWorkout = async () => {
+      try {
+        // Загружаем данные тренировки
+        const workoutResponse = await workoutsApi.getById(workoutId);
+        const workout = workoutResponse.data;
+        setWorkoutData(workout);
+
+        // Инициализируем прогресс нулями
+        const initialProgress = new Array(workout.exercises.length).fill(0);
+        setCurrentProgress(initialProgress);
+
+        // Загружаем прогресс пользователя, если авторизован
+        if (token && courseId) {
+          try {
+            const progressResponse = await progressApi.getWorkoutProgress(
+              courseId,
+              workoutId
+            );
+            const progress = progressResponse.data;
+            if (progress.progressData && progress.progressData.length > 0) {
+              setCurrentProgress(progress.progressData);
+            }
+          } catch (progressError) {
+            // Если прогресс не найден, используем нули
+            console.warn('Прогресс не загружен:', progressError);
+          }
+        }
+      } catch (error: unknown) {
         if (error instanceof AxiosError && error.response) {
           setErrorMessage(
             error.response.data.message || 'Ошибка загрузки тренировки',
@@ -47,27 +68,35 @@ export default function WorkoutPage() {
         } else {
           setErrorMessage('Ошибка сети или неизвестная ошибка.');
         }
-      })
-      .finally(() => {
+      } finally {
         setIsLoading(false);
-      });
-  }, [workoutId, token]);
+      }
+    };
+
+    loadWorkout();
+  }, [workoutId, courseId, token]);
 
   const workoutName = workoutData?.name || 'Тренировка';
   const videoUrl = workoutData?.video;
 
   if (isLoading) {
     return (
-      <div style={{ color: 'white', padding: '20px' }}>
-        Загрузка данных тренировки...
+      <div className={styles.workoutContainer}>
+        <Header />
+        <div style={{ padding: '40px', textAlign: 'center' }}>
+          <p>Загрузка данных тренировки...</p>
+        </div>
       </div>
     );
   }
 
   if (errorMessage || !workoutData) {
     return (
-      <div style={{ color: 'red', padding: '20px' }}>
-        Ошибка: {errorMessage || 'Данные тренировки не найдены.'}
+      <div className={styles.workoutContainer}>
+        <Header />
+        <div style={{ padding: '40px', textAlign: 'center', color: '#ff0000' }}>
+          <p>Ошибка: {errorMessage || 'Данные тренировки не найдены.'}</p>
+        </div>
       </div>
     );
   }
@@ -102,13 +131,22 @@ export default function WorkoutPage() {
       </div>
 
       <div className={styles.exercisesBlock}>
-        <h2 className={styles.exercisesBlockTitle}>Упражнения тренировки </h2>
+        <h2 className={styles.exercisesBlockTitle}>
+          Упражнения тренировки {workoutData.name ? `"${workoutData.name}"` : ''}
+        </h2>
         <ul className={styles.exercisesBlockUl}>
-          {workoutData.exercises.map((exercise, index: number) => (
-            <li className={styles.exercisesBlockList} key={exercise._id || index}>
-              {exercise.name} ({currentProgress[index] || 0} %)
-            </li>
-          ))}
+          {workoutData.exercises.map((exercise, index: number) => {
+            const progressValue = currentProgress[index] || 0;
+            const progressPercentage = workoutData.exercises[index]?.quantity
+              ? Math.round((progressValue / workoutData.exercises[index].quantity) * 100)
+              : 0;
+            
+            return (
+              <li className={styles.exercisesBlockList} key={exercise._id || index}>
+                {exercise.name} ({progressPercentage}%)
+              </li>
+            );
+          })}
         </ul>
         <BaseButton
           disabled={isLoading}

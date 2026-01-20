@@ -154,8 +154,29 @@
 
 .courseActions {
   display: flex;
+  flex-direction: column;
   gap: 8px;
   margin-top: 8px;
+}
+
+.startWorkoutButton {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 400;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #bcec30;
+  color: #000000;
+  text-decoration: none;
+  display: block;
+  text-align: center;
+}
+
+.startWorkoutButton:hover {
+  background: #a8d228;
 }
 
 .actionButton {

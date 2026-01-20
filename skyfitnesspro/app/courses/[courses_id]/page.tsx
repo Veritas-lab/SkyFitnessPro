@@ -12,6 +12,7 @@ import { getCoursesId } from '@/servises/course/courseApi';
 import { AxiosError } from 'axios';
 import { useModal } from '@/context/ModalContext';
 import { useCourse } from '@/hooks/useCourse';
+import ModalWorkouts from '@/components/ModalWorkouts/ModalWorkouts';
 
 export default function Course() {
   const user = useAppSelector((state) => state.auth.user);
@@ -19,6 +20,7 @@ export default function Course() {
   const [isLoading, setIsLoading] = useState(false);
   const [course, setCourses] = useState<CourseTypes | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isWorkoutsModalOpen, setIsWorkoutsModalOpen] = useState(false);
   const { openLogin } = useModal();
   const courseID = params.courses_id;
   const { toggleAddRemove, isAdd } = useCourse(course);
@@ -178,22 +180,30 @@ export default function Course() {
                 помогают противостоять стрессам
               </li>
             </ul>
-            {user &&
-              (isAdd ? (
+            {user && isAdd && (
+              <>
+                <BaseButton
+                  disabled={isLoading}
+                  onClick={() => setIsWorkoutsModalOpen(true)}
+                  fullWidth={true}
+                  text={'Начать тренировку'}
+                />
                 <BaseButton
                   disabled={isLoading}
                   onClick={toggleAddRemove}
                   fullWidth={true}
                   text={'Удалить курс'}
                 />
-              ) : (
-                <BaseButton
-                  disabled={isLoading}
-                  onClick={toggleAddRemove}
-                  fullWidth={true}
-                  text={'Добавить курс'}
-                />
-              ))}
+              </>
+            )}
+            {user && !isAdd && (
+              <BaseButton
+                disabled={isLoading}
+                onClick={toggleAddRemove}
+                fullWidth={true}
+                text={'Добавить курс'}
+              />
+            )}
             {!user && (
               <BaseButton
                 disabled={isLoading}
@@ -205,6 +215,12 @@ export default function Course() {
           </div>
         </div>
       </div>
+      {isWorkoutsModalOpen && courseID && (
+        <ModalWorkouts
+          courseId={courseID}
+          onClose={() => setIsWorkoutsModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

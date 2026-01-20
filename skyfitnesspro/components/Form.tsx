@@ -186,6 +186,7 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
             )}
             type="email"
             id="email"
+            autoComplete={mode === 'login' ? 'email' : 'email'}
             className={`w-full px-4 py-3 border rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white ${
               (mode === 'login' ? loginForm.formState.errors.email : registerForm.formState.errors.email)
                 ? 'border-red-500'
@@ -224,6 +225,7 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
             )}
             type={showPassword ? 'text' : 'password'}
             id="password"
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             className={`w-full px-4 py-3 pr-12 border rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white ${
               (mode === 'login' ? loginForm.formState.errors.password : registerForm.formState.errors.password)
                 ? 'border-red-500'
@@ -292,6 +294,7 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
               })}
               type={showConfirmPassword ? 'text' : 'password'}
               id="confirmPassword"
+              autoComplete="new-password"
               className={`w-full px-4 py-3 pr-12 border rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white ${
                 registerForm.formState.errors.confirmPassword
                   ? 'border-red-500'

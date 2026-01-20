@@ -281,6 +281,12 @@ export default function ProfilePage() {
                   </div>
 
                   <div className={styles.courseActions}>
+                    <Link
+                      href={`/courses/${course._id}`}
+                      className={styles.startWorkoutButton}
+                    >
+                      Начать тренировку
+                    </Link>
                     <button
                       onClick={() => handleRemoveCourse(course._id)}
                       className={`${styles.actionButton} ${styles.removeButton}`}

@@ -20,8 +20,25 @@
   }
 }
 .videoBlock {
+  width: 100%;
   height: 639px;
   border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.videoBlock iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 16px;
+}
+
+@media screen and (max-width: 495px) {
+  .videoBlock {
+    height: 400px;
+    margin-bottom: 24px;
+  }
 }
 .exercisesBlock {
   border-radius: 30px;
@@ -41,6 +58,7 @@
   font-size: 32px;
   margin-bottom: 20px;
   line-height: 110%;
+  color: #000000;
 }
 
 .exercisesBlockUl {
