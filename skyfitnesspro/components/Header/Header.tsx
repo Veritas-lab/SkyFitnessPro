@@ -23,7 +23,7 @@ export default function Header() {
       <div className={styles.header__block}>
         <div>
           <Link href="/">
-            <Image src="/logo.svg" alt="logo" width={220} height={35} />
+            <Image src="/img/logo.svg" alt="logo" width={220} height={35} />
           </Link>
           <p className={styles.header__text}>
             Онлайн-тренировки для занятий дома

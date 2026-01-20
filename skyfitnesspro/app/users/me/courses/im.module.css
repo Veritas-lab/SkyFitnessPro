@@ -1,0 +1,132 @@
+.center__container {
+    max-width: 1160px;
+    width: 100%;
+    margin: 0 auto;
+    margin: 0 auto;
+    background-color: #ffffff;
+    @media screen and (max-width: 495px) {
+      width: 100%;
+      padding: 0px 16px;
+    }
+  }
+  
+  .course__descTitle {
+    font-weight: 600;
+    font-size: 40px;
+    margin-bottom: 40px;
+    @media screen and (max-width: 495px) {
+      font-weight: 500;
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+  }
+  
+  .userContainer {
+    background-color: #ffffff;
+    border-radius: 30px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 33px;
+    padding: 30px;
+    box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+    margin-bottom: 60px;
+    @media screen and (max-width: 495px) {
+      justify-content: center;
+      flex-direction: column;
+      gap: 30px;
+      margin-bottom: 24px;
+    }
+  }
+  
+  .userImg {
+    position: relative;
+    width: 197px;
+    height: 197px;
+    @media screen and (max-width: 495px) {
+      width: 141px;
+      height: 141px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+  
+  .header__user {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    justify-content: center;
+    flex-direction: column;
+    margin-bottom: 60px;
+    @media screen and (max-width: 495px) {
+      margin-bottom: 20px;
+    }
+  }
+  
+  .userNameContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 30px;
+  
+    @media screen and (max-width: 495px) {
+      gap: 20px;
+    }
+  }
+  
+  .userNameMain {
+    font-weight: 500;
+    font-size: 32px;
+    color: #000;
+    line-height: 110%;
+    @media screen and (max-width: 495px) {
+      font-size: 24px;
+    }
+  }
+  
+  .userName {
+    font-weight: 400;
+    font-size: 18px;
+    color: #000;
+    line-height: 110%;
+    @media screen and (max-width: 495px) {
+      font-size: 16px;
+    }
+  }
+  
+  .modal__btnLogOut {
+    display: block;
+    padding: 16px 68.5px;
+    border-radius: 46px;
+    background: transparent;
+    border: 1px solid #000000;
+    font-size: 18px;
+    font-weight: 400;
+    text-align: center;
+    color: #000000;
+    cursor: pointer;
+    @media screen and (max-width: 495px) {
+      padding: 8px 16px;
+      width: 100%;
+    }
+  }
+  
+  .modal__btnLogOut:hover {
+    background: #f7f7f7;
+  }
+  
+  .modal__btnLogOut:active {
+    background: #e9eced;
+  }
+  
+  .modal__btnLogOut:disabled {
+    background: #ffffff;
+    color: #999999;
+    border: 1px solid #999999;
+  }

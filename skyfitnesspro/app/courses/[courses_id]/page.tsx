@@ -1,26 +1,28 @@
 'use client';
 
 import Image from 'next/image';
-import styles from './courses.module.css';
-import Header from '@/components/Header/Header';
-import BaseButton from '@/components/Button/Button';
-import { useAppSelector } from '@/store/store';
+import styles from './course.module.css';
+import Header from '../../../../components/Header/Header';
+import BaseButton from '../../../../components/Button/Button';
+import { useAppDispatch, useAppSelector } from '../../../../store/store';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { CourseTypes } from '@/sharedTyres/shared.Types';
-import { getCoursesId } from '@/servises/course/courseApi';
+import { CourseTypes } from '../../../../sharedTyres/shared.Types';
+import { addCourse } from '../../../../store/features/courseSlise';
+import { getCoursesId } from '../../../../servises/course/courseApi';
 import { AxiosError } from 'axios';
-import { useModal } from '@/context/ModalContext';
-import { useCourse } from '@/hooks/useCourse';
+import { useModal } from '../../../../context/ModalContext';
+import { useCourse } from '../../../../hooks/useCourse';
 
 export default function Course() {
   const user = useAppSelector((state) => state.auth.user);
-  const params = useParams<{ courses_id: string }>();
+  const dispatch = useAppDispatch();
+  const params = useParams<{ courseId: string }>();
   const [isLoading, setIsLoading] = useState(false);
   const [course, setCourses] = useState<CourseTypes | null>(null);
   const [error, setError] = useState<string | null>(null);
   const {openLogin} = useModal();
-  const courseID = params.courses_id;
+  const courseID = params.courseId;
    const { toggleAddRemove, isAdd} = useCourse(course);
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export default function Course() {
       .then((res: CourseTypes) => {
         setCourses(res);
       })
-      .catch((err: unknown) => {
+      .catch((err) => {
         if (err instanceof AxiosError) {
           if (err.response) {
             console.log(err.response.data);
@@ -42,7 +44,7 @@ export default function Course() {
           } else if (err.request) {
             setError('Что-то с интернетом');
           } else {
-            console.log('error:', err);
+            console.log('error:', error);
             setError('Неизвестная ошибка');
           }
         }
@@ -92,7 +94,7 @@ export default function Course() {
         </div>
         <h2 className={styles.course__descTitle}>Подойдет для вас, если:</h2>
         <div className={styles.course__desc}>
-          {course.fitting.map((fittingText: string, index: number) => (
+          {course.fitting.map((fittingText, index) => (
             <div key={index} className={styles.course__descBlock}>
               <p className={styles.course__descNumb}>{index + 1}</p>
               <p className={styles.course__descText}>{fittingText}</p>
@@ -101,7 +103,7 @@ export default function Course() {
         </div>
         <h2 className={styles.course__descTitle}>Направления</h2>
         <div className={styles.course__category}>
-          {course.directions.map((directionsText: string, index: number) => (
+          {course.directions.map((directionsText, index) => (
             <div key={index} className={styles.course__categoryName}>
               <div className={styles.course__categoryImage}>
                 <svg className={styles.course__categorySvg}>

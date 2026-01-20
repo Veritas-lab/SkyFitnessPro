@@ -7,6 +7,7 @@ import { coursesApi, usersApi } from '@/lib/api';
 import { Course } from '@/lib/types';
 import { useAuth } from '@/hooks/useAuth';
 import { getErrorMessage } from '@/lib/utils';
+import { useModal } from '@/context/ModalContext';
 
 // Маппинг изображений для курсов
 const courseImageMap: Record<string, string> = {
@@ -37,6 +38,7 @@ const bgColorMap: Record<string, string> = {
 
 export default function Home() {
   const { isAuthenticated, user } = useAuth();
+  const { openLogin } = useModal();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,8 +73,8 @@ export default function Home() {
 
   const handleAddCourse = async (courseId: string) => {
     if (!isAuthenticated) {
-      // Перенаправляем на страницу авторизации
-      window.location.href = '/auth';
+      // Открываем модальное окно входа для неавторизованных пользователей
+      openLogin();
       return;
     }
 

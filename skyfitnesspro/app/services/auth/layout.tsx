@@ -1,8 +1,8 @@
 'use client';
 
 import { ReactNode, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '../../store/store';
-import { restoreSession } from '../../store/features/authSlice';
+import { useAppDispatch, useAppSelector } from '../../../store/store';
+import { restoreSession } from '../../../store/features/authSlice';
 import { useRouter, usePathname } from 'next/navigation';
 import styles from './layout.module.css';
 import classNames from 'classnames';
