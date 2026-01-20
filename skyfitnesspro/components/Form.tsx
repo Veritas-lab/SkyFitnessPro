@@ -33,7 +33,8 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
     shouldFocusError: false, // Не фокусироваться на ошибке автоматически
   });
 
-  const form = mode === 'login' ? loginForm : registerForm;
+  // Используем правильную форму в зависимости от режима
+  const currentForm = mode === 'login' ? loginForm : registerForm;
 
   // Функция для определения типа ошибки и привязки к полю
   // Согласно документации API:
@@ -80,18 +81,29 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
     if (error) {
       const parsedError = parseApiError(error);
       if (parsedError.field) {
-        form.setError(parsedError.field as 'email' | 'password', {
-          type: 'server',
-          message: parsedError.message,
-        });
+        if (mode === 'login') {
+          loginForm.setError(parsedError.field as 'email' | 'password', {
+            type: 'server',
+            message: parsedError.message,
+          });
+        } else {
+          registerForm.setError(parsedError.field as 'email' | 'password', {
+            type: 'server',
+            message: parsedError.message,
+          });
+        }
       }
     }
-  }, [error, form]);
+  }, [error, mode, loginForm, registerForm]);
 
   const onSubmit = async (data: RegisterFormData | LoginFormData) => {
     setIsLoading(true);
     // Очищаем предыдущие ошибки
-    form.clearErrors();
+    if (mode === 'login') {
+      loginForm.clearErrors();
+    } else {
+      registerForm.clearErrors();
+    }
     
     let success = false;
     if (mode === 'login') {
@@ -101,7 +113,7 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
       success = await register(registerData.email, registerData.password);
     }
     setIsLoading(false);
-    
+
     if (success && onSuccess) {
       onSuccess();
     }
@@ -139,6 +151,7 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
           alt="SkyFitnessPro"
           width={50}
           height={50}
+          loading="eager"
           priority
           style={{
             width: 'auto',
@@ -148,25 +161,33 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
       </div>
 
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={currentForm.handleSubmit(onSubmit)}
         className="w-full flex flex-col"
         style={{ gap: '16px' }}
       >
         {/* Поле Email / Эл. почта */}
         <div>
           <input
-            {...form.register('email', {
-              onChange: () => {
-                // Очищаем ошибку при вводе
-                if (form.formState.errors.email) {
-                  form.clearErrors('email');
-                }
-              },
-            })}
+            {...(mode === 'login' 
+              ? loginForm.register('email', {
+                  onChange: () => {
+                    if (loginForm.formState.errors.email) {
+                      loginForm.clearErrors('email');
+                    }
+                  },
+                })
+              : registerForm.register('email', {
+                  onChange: () => {
+                    if (registerForm.formState.errors.email) {
+                      registerForm.clearErrors('email');
+                    }
+                  },
+                })
+            )}
             type="email"
             id="email"
             className={`w-full px-4 py-3 border rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white ${
-              form.formState.errors.email
+              (mode === 'login' ? loginForm.formState.errors.email : registerForm.formState.errors.email)
                 ? 'border-red-500'
                 : 'border-gray-300'
             }`}
@@ -175,26 +196,36 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
               borderRadius: '30px',
             }}
           />
-          {form.formState.errors.email && (
-            <p className="mt-1 text-sm text-red-600">{form.formState.errors.email.message}</p>
+          {(mode === 'login' ? loginForm.formState.errors.email : registerForm.formState.errors.email) && (
+            <p className="mt-1 text-sm text-red-600">
+              {(mode === 'login' ? loginForm.formState.errors.email : registerForm.formState.errors.email)?.message}
+            </p>
           )}
         </div>
 
         {/* Поле Пароль */}
         <div className="relative">
           <input
-            {...form.register('password', {
-              onChange: () => {
-                // Очищаем ошибку при вводе
-                if (form.formState.errors.password) {
-                  form.clearErrors('password');
-                }
-              },
-            })}
+            {...(mode === 'login'
+              ? loginForm.register('password', {
+                  onChange: () => {
+                    if (loginForm.formState.errors.password) {
+                      loginForm.clearErrors('password');
+                    }
+                  },
+                })
+              : registerForm.register('password', {
+                  onChange: () => {
+                    if (registerForm.formState.errors.password) {
+                      registerForm.clearErrors('password');
+                    }
+                  },
+                })
+            )}
             type={showPassword ? 'text' : 'password'}
             id="password"
             className={`w-full px-4 py-3 pr-12 border rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white ${
-              form.formState.errors.password
+              (mode === 'login' ? loginForm.formState.errors.password : registerForm.formState.errors.password)
                 ? 'border-red-500'
                 : 'border-gray-300'
             }`}
@@ -241,8 +272,10 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
               </svg>
             )}
           </button>
-          {form.formState.errors.password && (
-            <p className="mt-1 text-sm text-red-600">{form.formState.errors.password.message}</p>
+          {(mode === 'login' ? loginForm.formState.errors.password : registerForm.formState.errors.password) && (
+            <p className="mt-1 text-sm text-red-600">
+              {(mode === 'login' ? loginForm.formState.errors.password : registerForm.formState.errors.password)?.message}
+            </p>
           )}
         </div>
 
@@ -250,18 +283,17 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
         {mode === 'register' && (
           <div className="relative">
             <input
-              {...form.register('confirmPassword', {
+              {...registerForm.register('confirmPassword', {
                 onChange: () => {
-                  // Очищаем ошибку при вводе
-                  if (form.formState.errors.confirmPassword) {
-                    form.clearErrors('confirmPassword');
+                  if (registerForm.formState.errors.confirmPassword) {
+                    registerForm.clearErrors('confirmPassword');
                   }
                 },
               })}
               type={showConfirmPassword ? 'text' : 'password'}
               id="confirmPassword"
               className={`w-full px-4 py-3 pr-12 border rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white ${
-                form.formState.errors.confirmPassword
+                registerForm.formState.errors.confirmPassword
                   ? 'border-red-500'
                   : 'border-gray-300'
               }`}
@@ -308,14 +340,14 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
                 </svg>
               )}
             </button>
-            {form.formState.errors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-600">{form.formState.errors.confirmPassword.message}</p>
+            {registerForm.formState.errors.confirmPassword && (
+              <p className="mt-1 text-sm text-red-600">{registerForm.formState.errors.confirmPassword.message}</p>
             )}
           </div>
         )}
 
         {/* Общее сообщение об ошибке (если не привязано к полю) */}
-        {error && !form.formState.errors.email && !form.formState.errors.password && (
+        {error && !(mode === 'login' ? loginForm.formState.errors.email : registerForm.formState.errors.email) && !(mode === 'login' ? loginForm.formState.errors.password : registerForm.formState.errors.password) && !(mode === 'register' && registerForm.formState.errors.confirmPassword) && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-600">{error}</p>
           </div>

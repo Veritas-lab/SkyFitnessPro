@@ -1,7 +1,7 @@
 'use client';
 
-import styles from './me.module.css';
-import { useDispatch } from 'react-redux';
+import styles from './im.module.css';
+import { useAppDispatch } from '../../../../store/store';
 import { useAppSelector } from '../../../../store/store';
 import { logout } from '../../../../store/features/authSlice';
 import Header from '../../../../components/Header/Header';
@@ -21,19 +21,23 @@ import { AxiosError } from 'axios';
 export default function MeCourses() {
   const user = useAppSelector((state) => state.auth.user);
   const { token } = useAppSelector((state) => state.auth);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const router = useRouter();
-  const { allCourses, myCourseIds, fetchError, fetchIsLoading, myCourses } =
+  const { allCourses, myCourseIds, error: fetchError, isLoading: fetchIsLoading, myCourses } =
     useAppSelector((state) => state.course);
 
   const onLogout = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
     dispatch(logout());
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+    }
     router.push('/');
   };
 
   useEffect(() => {
     if (!token) {
+      router.push('/');
       return;
     }
 
@@ -42,18 +46,17 @@ export default function MeCourses() {
       getCoursesMe(token)
         .then((res) => {
           const userObject = res.user;
-          const meApiCourses = userObject.selectedCourses;
+          const meApiCourses = userObject.selectedCourses || [];
           dispatch(setMyCourseIds(meApiCourses));
         })
         .catch((err) => {
           if (err instanceof AxiosError) {
             if (err.response) {
-              setFetchError(err.response.data.message);
+              dispatch(setFetchError(err.response.data.message));
             } else if (err.request) {
-              setFetchError('Что-то с интернетом');
+              dispatch(setFetchError('Что-то с интернетом'));
             } else {
-              console.log('error:', err);
-              setFetchError('Неизвестная ошибка');
+              dispatch(setFetchError('Неизвестная ошибка'));
             }
           }
         })
@@ -61,7 +64,7 @@ export default function MeCourses() {
           dispatch(setFetchIsLoading(false));
         });
     }
-  }, [dispatch, token, myCourses.length, fetchIsLoading]);
+  }, [dispatch, token, myCourses.length, fetchIsLoading, router]);
   
   useEffect(() => {
     if (myCourseIds.length > 0 && allCourses.length > 0) {
@@ -81,7 +84,7 @@ export default function MeCourses() {
         <div className={styles.userContainer}>
           <div className={styles.userImg}>
             <Image
-              src="/img/big_profil.png"
+              src="/img/Big_Profile.svg"
               alt="profile"
               loading="eager"
               fill
@@ -101,14 +104,11 @@ export default function MeCourses() {
           </div>
         </div>
         <h1 className={styles.course__descTitle}>Мои курсы</h1>
-        <div className={styles.center__courses}></div>
-        (
         <CoursesBlock
           courses={myCourses}
           errorRes={fetchError}
           isLoading={fetchIsLoading}
         />
-        )
       </div>
     </>
   );

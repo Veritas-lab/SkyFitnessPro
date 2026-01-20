@@ -5,12 +5,16 @@ interface CourseState {
   allCourses: Course[];
   isLoading: boolean;
   error: string | null;
+  myCourseIds: string[];
+  myCourses: Course[];
 }
 
 const initialState: CourseState = {
   allCourses: [],
   isLoading: false,
   error: null,
+  myCourseIds: [],
+  myCourses: [],
 };
 
 const courseSlice = createSlice({
@@ -35,6 +39,12 @@ const courseSlice = createSlice({
     removeCourse: (state, action: PayloadAction<string>) => {
       state.allCourses = state.allCourses.filter((c) => c._id !== action.payload);
     },
+    setMyCourseIds: (state, action: PayloadAction<string[]>) => {
+      state.myCourseIds = action.payload;
+    },
+    setMyCourses: (state, action: PayloadAction<Course[]>) => {
+      state.myCourses = action.payload;
+    },
   },
 });
 
@@ -44,5 +54,7 @@ export const {
   setFetchError,
   addCourse,
   removeCourse,
+  setMyCourseIds,
+  setMyCourses,
 } = courseSlice.actions;
 export default courseSlice.reducer;

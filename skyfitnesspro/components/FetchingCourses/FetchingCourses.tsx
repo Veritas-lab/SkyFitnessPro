@@ -31,7 +31,6 @@ export default function FetchingCourses() {
           } else if (err.request) {
             dispatch(setFetchError('Что-то с интернетом'));
           } else {
-            console.log('error:', err);
             dispatch(setFetchError('Неизвестная ошибка'));
           }
         }

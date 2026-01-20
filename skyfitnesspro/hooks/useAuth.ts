@@ -105,7 +105,7 @@ export function useAuth() {
       dispatch(setUser(userRes.data.email));
       dispatch(setToken(token));
 
-      router.push('/profile');
+      router.push('/main');
       return true;
     } catch (err: unknown) {
       const message = getErrorMessage(err);

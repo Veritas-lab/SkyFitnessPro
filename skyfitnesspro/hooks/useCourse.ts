@@ -26,7 +26,7 @@ export function useCourse(course: Course | null) {
         // Пока используем заглушку
         setIsAdd(false);
       } catch (err) {
-        console.error('Error checking course:', err);
+        // Ошибка при проверке курса
       }
     };
 

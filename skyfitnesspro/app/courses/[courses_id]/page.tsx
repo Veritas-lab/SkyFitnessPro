@@ -1,29 +1,27 @@
 'use client';
 
 import Image from 'next/image';
-import styles from './course.module.css';
-import Header from '../../../../components/Header/Header';
-import BaseButton from '../../../../components/Button/Button';
-import { useAppDispatch, useAppSelector } from '../../../../store/store';
+import styles from './courses.module.css';
+import Header from '@/components/Header/Header';
+import BaseButton from '@/components/Button/Button';
+import { useAppSelector } from '@/store/store';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { CourseTypes } from '../../../../sharedTyres/shared.Types';
-import { addCourse } from '../../../../store/features/courseSlise';
-import { getCoursesId } from '../../../../servises/course/courseApi';
+import { CourseTypes } from '@/sharedTyres/shared.Types';
+import { getCoursesId } from '@/servises/course/courseApi';
 import { AxiosError } from 'axios';
-import { useModal } from '../../../../context/ModalContext';
-import { useCourse } from '../../../../hooks/useCourse';
+import { useModal } from '@/context/ModalContext';
+import { useCourse } from '@/hooks/useCourse';
 
 export default function Course() {
   const user = useAppSelector((state) => state.auth.user);
-  const dispatch = useAppDispatch();
-  const params = useParams<{ courseId: string }>();
+  const params = useParams<{ courses_id: string }>();
   const [isLoading, setIsLoading] = useState(false);
   const [course, setCourses] = useState<CourseTypes | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const {openLogin} = useModal();
-  const courseID = params.courseId;
-   const { toggleAddRemove, isAdd} = useCourse(course);
+  const { openLogin } = useModal();
+  const courseID = params.courses_id;
+  const { toggleAddRemove, isAdd } = useCourse(course);
 
   useEffect(() => {
     if (!courseID) return;
@@ -32,33 +30,43 @@ export default function Course() {
       return;
     }
 
-    getCoursesId(courseID)
-      .then((res: CourseTypes) => {
-        setCourses(res);
-      })
-      .catch((err) => {
-        if (err instanceof AxiosError) {
-          if (err.response) {
-            console.log(err.response.data);
-            setError(err.response.data.message);
-          } else if (err.request) {
-            setError('Что-то с интернетом');
+    let isMounted = true;
+
+    const loadCourse = async () => {
+      try {
+        setIsLoading(true);
+        const res = await getCoursesId(courseID);
+        if (isMounted) {
+          setCourses(res);
+          setError(null);
+        }
+      } catch (err: unknown) {
+        if (isMounted) {
+          if (err instanceof AxiosError) {
+            if (err.response) {
+              setError(err.response.data.message);
+            } else if (err.request) {
+              setError('Что-то с интернетом');
+            } else {
+              setError('Неизвестная ошибка');
+            }
           } else {
-            console.log('error:', error);
             setError('Неизвестная ошибка');
           }
         }
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [courseID, course, error]);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
 
-  // const onLogin = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-  //   e.preventDefault();
-  //   setIsLoading(true);
-  //   router.push('/auth/login');
-  // };
+    loadCourse();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [courseID, course]);
 
   if (!course) {
     return (
@@ -69,12 +77,6 @@ export default function Course() {
   const imageName = course.nameEN.toLowerCase().replace(' ', '');
   const imagePath = `/img/skill${imageName}.png`;
   const imagePathMob = `/img/${imageName}.png`;
-  // const onAddCourse = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-  //   e.preventDefault();
-  //   setIsLoading(true);
-  //   dispatch(addCourse(course));
-  //   setIsLoading(false);
-  // };
 
   return (
     <div>
@@ -94,7 +96,7 @@ export default function Course() {
         </div>
         <h2 className={styles.course__descTitle}>Подойдет для вас, если:</h2>
         <div className={styles.course__desc}>
-          {course.fitting.map((fittingText, index) => (
+          {course.fitting.map((fittingText: string, index: number) => (
             <div key={index} className={styles.course__descBlock}>
               <p className={styles.course__descNumb}>{index + 1}</p>
               <p className={styles.course__descText}>{fittingText}</p>
@@ -103,12 +105,16 @@ export default function Course() {
         </div>
         <h2 className={styles.course__descTitle}>Направления</h2>
         <div className={styles.course__category}>
-          {course.directions.map((directionsText, index) => (
+          {course.directions.map((directionsText: string, index: number) => (
             <div key={index} className={styles.course__categoryName}>
               <div className={styles.course__categoryImage}>
-                <svg className={styles.course__categorySvg}>
-                  <use xlinkHref="/icon/Icon_Star.svg"></use>
-                </svg>
+                <Image
+                  src="/img/complexity.svg"
+                  alt="Star"
+                  width={20}
+                  height={20}
+                  className={styles.course__categorySvg}
+                />
               </div>
               <p className={styles.course__categoryText}>{directionsText}</p>
             </div>
@@ -116,25 +122,41 @@ export default function Course() {
         </div>
         <div className={styles.course__groupImage}>
           <div>
-            <svg className={styles.course__svgMan}>
-              <use xlinkHref="/man.svg"></use>
-            </svg>
+            <Image
+              src="/img/Boy.svg"
+              alt="Boy"
+              width={100}
+              height={100}
+              className={styles.course__svgMan}
+            />
           </div>
           <div>
-            <svg className={styles.course__svgBlack}>
-              <use xlinkHref="/Vector1.svg"></use>
-            </svg>
+            <Image
+              src="/img/Vector.png"
+              alt="Vector"
+              width={100}
+              height={100}
+              className={styles.course__svgBlack}
+            />
           </div>
           <div>
-            <svg className={styles.course__svgGreen}>
-              <use xlinkHref="/Vector2.svg"></use>
-            </svg>
+            <Image
+              src="/img/Vector_69.png"
+              alt="Vector"
+              width={100}
+              height={100}
+              className={styles.course__svgGreen}
+            />
           </div>
         </div>
         <div className={styles.course__groupImageMob}>
-          <svg className={styles.course__manMob}>
-            <use xlinkHref="/img/GroupMan.svg"></use>
-          </svg>
+          <Image
+            src="/img/Boy.svg"
+            alt="Boy"
+            width={343}
+            height={389}
+            className={styles.course__manMob}
+          />
         </div>
         <div className={styles.course__way}>
           <div className={styles.course__wayBlock}>
@@ -156,18 +178,22 @@ export default function Course() {
                 помогают противостоять стрессам
               </li>
             </ul>
-            {user && ((isAdd ? (<BaseButton
-                disabled={isLoading}
-                onClick={toggleAddRemove}
-                fullWidth={true}
-                text={'Удалить курс'}
-              />) : (<BaseButton
-                disabled={isLoading}
-                onClick={toggleAddRemove}
-                fullWidth={true}
-                text={'Добавить курс'}
-              />))
-            )}
+            {user &&
+              (isAdd ? (
+                <BaseButton
+                  disabled={isLoading}
+                  onClick={toggleAddRemove}
+                  fullWidth={true}
+                  text={'Удалить курс'}
+                />
+              ) : (
+                <BaseButton
+                  disabled={isLoading}
+                  onClick={toggleAddRemove}
+                  fullWidth={true}
+                  text={'Добавить курс'}
+                />
+              ))}
             {!user && (
               <BaseButton
                 disabled={isLoading}

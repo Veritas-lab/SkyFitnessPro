@@ -1,11 +1,11 @@
 'use client';
 
 import { ReactNode, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '../../../store/store';
-import { restoreSession } from '../../../store/features/authSlice';
+import { useAppDispatch, useAppSelector } from '@/store/store';
+import { restoreSession, setUser, setToken } from '@/store/features/authSlice';
 import { useRouter, usePathname } from 'next/navigation';
+import { usersApi } from '@/lib/api';
 import styles from './layout.module.css';
-import classNames from 'classnames';
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -19,11 +19,30 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
   useEffect(() => {
     dispatch(restoreSession());
+    
+    // Загружаем пользователя если есть токен
+    const loadUser = async () => {
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            const userRes = await usersApi.getMe();
+            dispatch(setUser(userRes.data.email));
+            dispatch(setToken(token));
+          } catch {
+            // Токен невалидный, очищаем
+            localStorage.removeItem('token');
+          }
+        }
+      }
+    };
+    
+    loadUser();
   }, [dispatch]);
 
   useEffect(() => {
     if (isAuth) {
-      router.push('/');
+      router.push('/main');
     }
   }, [isAuth, router]);
 
@@ -44,10 +63,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
             top: `calc(50% - ${modalHeight / 2}px)`
           }}
         >
-          <div className={classNames(
-            styles.modal__form,
-            isSignin ? styles.signin : styles.signup
-          )}>
+          <div className={`${styles.modal__form} ${isSignin ? styles.signin : styles.signup}`}>
             {children}
           </div>
         </div>

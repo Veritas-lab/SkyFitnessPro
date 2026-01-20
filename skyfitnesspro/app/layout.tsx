@@ -16,12 +16,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div 
             className="mx-auto relative"
             style={{
-              width: '1440px',
-              minHeight: '1559px',
+              maxWidth: '1440px',
+              width: '100%',
+              minHeight: '100vh',
             }}
           >
             <Header />
-            <div style={{ paddingLeft: '140px', paddingRight: '140px', paddingTop: '180px' }}>
+            <div 
+              className="px-4 md:px-10 lg:px-[140px] pt-20 md:pt-32 lg:pt-[180px]"
+            >
               {children}
             </div>
           </div>

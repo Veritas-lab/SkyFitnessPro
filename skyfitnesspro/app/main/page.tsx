@@ -8,6 +8,7 @@ import { usersApi, coursesApi, progressApi } from '@/lib/api';
 import { User, Course, CourseProgress } from '@/lib/types';
 import { useAuth } from '@/hooks/useAuth';
 import { getErrorMessage } from '@/lib/utils';
+import styles from './page.module.css';
 
 // Маппинг изображений для курсов
 const courseImageMap: Record<string, string> = {
@@ -94,7 +95,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!authLoading) {
       if (!isAuthenticated) {
-        router.push('/auth');
+        router.push('/auth/signin');
         return;
       }
       loadUserCourses();
@@ -133,6 +134,16 @@ export default function ProfilePage() {
     return 'bg-gray-300';
   };
 
+  const formatDuration = (days?: number): string => {
+    if (!days) return '25 дней';
+    return `${days} ${days === 1 ? 'день' : days < 5 ? 'дня' : 'дней'}`;
+  };
+
+  const formatTime = (dailyDuration?: { from: number; to: number }): string => {
+    if (!dailyDuration) return '20-50 мин/день';
+    return `${dailyDuration.from}-${dailyDuration.to} мин/день`;
+  };
+
   const getCourseProgress = (courseId: string) => {
     const progress = progressMap[courseId];
     if (!progress) return null;
@@ -145,188 +156,165 @@ export default function ProfilePage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-white font-['Roboto']">
-        <main className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-[140px] pt-20">
-          <div className="text-center py-20">
-            <p className="text-gray-600">Загрузка профиля...</p>
-          </div>
-        </main>
+      <div className={styles.profile}>
+        <div className={styles.loading}>
+          <p>Загрузка профиля...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white font-['Roboto']">
-        <main className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-[140px] pt-20">
-          <div className="text-center py-20">
-            <p className="text-red-600">Ошибка: {error}</p>
-            <button
-              onClick={loadUserCourses}
-              className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              Попробовать снова
-            </button>
-          </div>
-        </main>
+      <div className={styles.profile}>
+        <div className={styles.error}>
+          <p>Ошибка: {error}</p>
+          <button onClick={loadUserCourses}>
+            Попробовать снова
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white font-['Roboto']">
-      <main className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-[140px] pt-20 pb-12">
-        {/* Информация о пользователе */}
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Мой профиль</h1>
-          {user && (
-            <p className="text-lg text-gray-600">Email: {user.email}</p>
-          )}
+    <div className={styles.profile}>
+      <h1 className={styles.title}>Мои курсы</h1>
+      
+      {courses.length === 0 ? (
+        <div className={styles.emptyState}>
+          <p className={styles.emptyStateText}>
+            У вас пока нет выбранных курсов.
+          </p>
+          <Link href="/" className={styles.emptyStateLink}>
+            Выбрать курсы
+          </Link>
         </div>
+      ) : (
+        <div className={styles.coursesGrid}>
+          {courses.map((course) => {
+            const courseProgress = getCourseProgress(course._id);
+            const progressPercentage = courseProgress
+              ? Math.round((courseProgress.completed / courseProgress.total) * 100)
+              : 0;
 
-        {/* Выбранные курсы */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">Мои курсы</h2>
-          {courses.length === 0 ? (
-            <div className="p-8 bg-gray-50 border border-gray-200 rounded-lg text-center">
-              <p className="text-gray-600 mb-4">
-                У вас пока нет выбранных курсов
-              </p>
-              <Link
-                href="/"
-                className="inline-block px-6 py-3 bg-[#BCEC30] hover:bg-[#a8d228] text-black font-medium rounded-lg transition"
+            return (
+              <div
+                key={course._id}
+                className={`${styles.courseCard} ${getCourseBgColor(course)}`}
               >
-                Выбрать курсы
-              </Link>
-            </div>
-          ) : (
-            <div
-              className="
-                grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 
-                gap-6 md:gap-8 lg:gap-[24px]
-              "
-            >
-              {courses.map((course) => {
-                const courseProgress = getCourseProgress(course._id);
+                {/* Фото */}
+                <div className={styles.courseImageWrapper}>
+                  <Link href={`/courses/${course._id}`}>
+                    <Image
+                      src={getCourseImage(course)}
+                      alt={course.nameRU}
+                      width={360}
+                      height={325}
+                      className="object-cover cursor-pointer"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                      }}
+                    />
+                  </Link>
+                </div>
 
-                return (
-                  <div
-                    key={course._id}
-                    className={`
-                      relative rounded-[30px] overflow-hidden
-                      w-full max-w-[360px] h-[501px]
-                      shadow-[0_4px_67px_-12px_rgba(0,0,0,0.13)]
-                      flex flex-col
-                      ${getCourseBgColor(course)}
-                      mx-auto lg:mx-0
-                    `}
-                  >
-                    {/* Фото */}
-                    <div className="relative h-[60%] bg-gray-200">
-                      <Link href={`/courses/${course._id}`}>
-                        <Image
-                          src={getCourseImage(course)}
-                          alt={course.nameRU}
-                          fill
-                          className="object-cover cursor-pointer"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
-                          loading="lazy"
-                          placeholder="blur"
-                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+                {/* Информация */}
+                <div className={styles.courseInfo}>
+                  <Link href={`/courses/${course._id}`}>
+                    <h3 className={styles.courseTitle}>
+                      {course.nameRU}
+                    </h3>
+                  </Link>
+
+                  <div className={styles.courseMeta}>
+                    <div className={styles.courseMetaItem}>
+                      <Image
+                        src="/img/calendar.svg"
+                        alt="Календарь"
+                        width={16}
+                        height={16}
+                      />
+                      <span>
+                        {formatDuration(course.durationInDays)}
+                      </span>
+                    </div>
+                    <div className={styles.courseMetaItem}>
+                      <Image
+                        src="/img/clock.svg"
+                        alt="Часы"
+                        width={16}
+                        height={16}
+                      />
+                      <span>{formatTime(course.dailyDurationInMinutes)}</span>
+                    </div>
+                  </div>
+
+                  {courseProgress && (
+                    <div>
+                      <p className={styles.progressText}>
+                        Прогресс: {courseProgress.completed} из {courseProgress.total} тренировок ({progressPercentage}%)
+                      </p>
+                      <div className={styles.progressBar}>
+                        <div
+                          className={styles.progressFill}
+                          style={{ width: `${progressPercentage}%` }}
                         />
-                      </Link>
-                    </div>
-
-                    {/* Информация */}
-                    <div className="flex flex-col flex-1 p-6 pb-[15px] bg-white gap-4">
-                      <Link href={`/courses/${course._id}`}>
-                        <h3 className="text-xl md:text-2xl font-semibold cursor-pointer hover:text-blue-600">
-                          {course.nameRU}
-                        </h3>
-                      </Link>
-
-                      <div className="flex items-center text-sm md:text-base text-gray-600 gap-3">
-                        <span>
-                          {course.durationInDays
-                            ? `${course.durationInDays} дней`
-                            : '25 дней'}
-                        </span>
-                        <span className="text-gray-400">•</span>
-                        <span>
-                          {course.dailyDurationInMinutes
-                            ? `${course.dailyDurationInMinutes.from}-${course.dailyDurationInMinutes.to} мин/день`
-                            : '20-50 мин/день'}
-                        </span>
                       </div>
-
-                      {courseProgress && (
-                        <div className="mt-auto">
-                          <p className="text-sm text-gray-600 mb-1">
-                            Прогресс: {courseProgress.completed} из{' '}
-                            {courseProgress.total} тренировок
-                          </p>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-green-500 h-2 rounded-full transition-all"
-                              style={{
-                                width: `${
-                                  (courseProgress.completed /
-                                    courseProgress.total) *
-                                  100
-                                }%`,
-                              }}
-                            />
-                          </div>
-                          {courseProgress.isCompleted && (
-                            <p className="text-sm text-green-600 font-medium mt-1">
-                              ✓ Курс завершён
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {course.difficulty && (
-                        <div className="text-sm md:text-base text-blue-600 font-medium">
-                          {course.difficulty}
-                        </div>
+                      {courseProgress.isCompleted && (
+                        <p style={{ color: '#4caf50', fontSize: '14px', marginTop: '8px' }}>
+                          ✓ Курс завершён
+                        </p>
                       )}
                     </div>
+                  )}
 
-                    {/* Кнопка удаления */}
+                  <div className={styles.courseComplexity}>
+                    <Image
+                      src="/img/complexity.svg"
+                      alt="Сложность"
+                      width={16}
+                      height={16}
+                    />
+                    <span>Сложность</span>
+                  </div>
+
+                  <div className={styles.courseActions}>
                     <button
                       onClick={() => handleRemoveCourse(course._id)}
-                      className="
-                        absolute top-5 right-5
-                        bg-white rounded-full
-                        w-10 h-10 md:w-12 md:h-12
-                        flex items-center justify-center
-                        shadow-md hover:bg-red-100
-                        transition text-xl md:text-2xl font-bold
-                        text-red-600
-                      "
-                      title="Удалить курс"
+                      className={`${styles.actionButton} ${styles.removeButton}`}
                     >
-                      ×
+                      Удалить
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!confirm('Вы уверены, что хотите сбросить прогресс?')) return;
+                        try {
+                          await coursesApi.resetProgress(course._id);
+                          window.location.reload();
+                        } catch (err) {
+                          alert(getErrorMessage(err));
+                        }
+                      }}
+                      className={`${styles.actionButton} ${styles.resetButton}`}
+                    >
+                      Сбросить прогресс
                     </button>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                </div>
+              </div>
+            );
+          })}
         </div>
+      )}
 
-        {/* Кнопка добавления курсов */}
-        {courses.length > 0 && (
-          <div className="text-center mt-8">
-            <Link
-              href="/"
-              className="inline-block px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition"
-            >
-              Добавить ещё курсы
-            </Link>
-          </div>
-        )}
-      </main>
+      {/* Кнопка Наверх */}
+      <div className={styles.scrollTopButton}>
+        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          Наверх ↑
+        </button>
+      </div>
     </div>
   );
 }

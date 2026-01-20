@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Базовый URL внешнего API
-// Установите переменную окружения NEXT_PUBLIC_API_URL в .env.local
-// Например: NEXT_PUBLIC_API_URL=https://api.example.com/api/fitness
-// Или используйте локальный API, если он запущен на другом порту
-// Если переменная не установлена, API будет возвращать ошибку подключения
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+// Если NEXT_PUBLIC_API_URL не установлен, используем дефолтный
+const EXTERNAL_API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://wedev-api.sky.pro/api/fitness';
 
 export async function GET(
   request: NextRequest,
@@ -39,7 +36,6 @@ export async function DELETE(
   return handleRequest(request, path, 'DELETE');
 }
 
-// Мок-данные для разработки
 const MOCK_COURSES = [
   {
     _id: '1',
@@ -109,43 +105,21 @@ async function handleRequest(
   method: string
 ) {
   const path = pathSegments.join('/');
-  
-  // Если API URL не настроен, API находится на том же домене по пути /api/fitness
-  // В этом случае используем мок-данные для /courses или возвращаем ошибку
-  if (!API_BASE_URL) {
-    // Мок для GET /courses
-    if (method === 'GET' && path === 'courses') {
-      return NextResponse.json(MOCK_COURSES, { status: 200 });
-    }
-    
-    // Для других endpoints возвращаем ошибку, так как API должен быть настроен
-    return NextResponse.json(
-      { 
-        message: 'API находится на том же домене. Убедитесь, что API routes настроены правильно или установите NEXT_PUBLIC_API_URL для внешнего API.' 
-      },
-      { status: 500 }
-    );
-  }
 
   try {
-    // Получаем query параметры
     const searchParams = request.nextUrl.searchParams;
     const queryString = searchParams.toString();
-    
-    // Формируем URL для внешнего API
-    const url = `${API_BASE_URL}/${path}${queryString ? `?${queryString}` : ''}`;
+    const url = `${EXTERNAL_API_URL}/${path}${queryString ? `?${queryString}` : ''}`;
 
-    // Получаем тело запроса (если есть)
     let body = null;
     if (method !== 'GET' && method !== 'DELETE') {
       try {
         body = await request.json();
       } catch {
-        // Если нет тела, игнорируем
+        // If no body, ignore
       }
     }
 
-    // Получаем заголовки авторизации
     const authHeader = request.headers.get('authorization');
     const headers: HeadersInit = {};
     
@@ -153,37 +127,28 @@ async function handleRequest(
       headers['Authorization'] = authHeader;
     }
 
-    // Выполняем запрос к внешнему API
     const response = await fetch(url, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    // Пытаемся получить JSON ответ
     let data;
     const contentType = response.headers.get('content-type');
     
     if (contentType && contentType.includes('application/json')) {
       data = await response.json();
     } else {
-      // Если ответ не JSON, читаем как текст
       const text = await response.text();
       try {
         data = JSON.parse(text);
       } catch {
-        // Если не удалось распарсить, возвращаем текст как сообщение об ошибке
         data = { message: text || 'Ошибка сервера' };
       }
     }
 
-    // Возвращаем ответ с тем же статусом, что и внешний API
-    // Согласно документации, ошибки возвращаются со статусом 404
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error('API Proxy Error:', error);
-    
-    // Обрабатываем ошибки сети
     if (error instanceof TypeError && error.message.includes('fetch')) {
       return NextResponse.json(
         { message: 'Не удалось подключиться к API серверу. Проверьте URL и убедитесь, что сервер запущен.' },

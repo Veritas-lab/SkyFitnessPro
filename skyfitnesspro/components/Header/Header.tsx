@@ -23,7 +23,18 @@ export default function Header() {
       <div className={styles.header__block}>
         <div>
           <Link href="/">
-            <Image src="/img/logo.svg" alt="logo" width={220} height={35} />
+            <Image
+              src="/img/logo.svg"
+              alt="logo"
+              width={220}
+              height={35}
+              loading="eager"
+              priority
+              style={{
+                width: 'auto',
+                height: 'auto',
+              }}
+            />
           </Link>
           <p className={styles.header__text}>
             Онлайн-тренировки для занятий дома
@@ -35,7 +46,7 @@ export default function Header() {
         {user && (
           <div className={styles.header__user} onClick={toggleModal}>
             <Image
-              src="/img/Profile.png"
+              src="/img/Profile.svg"
               alt="profile"
               width={50}
               height={50}

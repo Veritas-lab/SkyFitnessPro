@@ -1,13 +1,11 @@
 'use client';
 
 import styles from './signin.module.css';
-import classNames from 'classnames';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { login, clearError } from '@/store/features/authSlice';
-import { toast } from 'react-toastify';
 
 export default function Signin() {
   const dispatch = useAppDispatch();
@@ -21,7 +19,7 @@ export default function Signin() {
 
   useEffect(() => {
     if (error) {
-      toast.error(error);
+      alert(error);
     }
   }, [error]);
 
@@ -29,13 +27,13 @@ export default function Signin() {
     e.preventDefault();
 
     if (!email.trim() || !password.trim()) {
-      toast.error('Заполните все поля');
+      alert('Заполните все поля');
       return;
     }
 
     try {
       await dispatch(login({ email, password }));
-      // Модалка закроется автоматически через useEffect в LoginModal
+      // Редирект произойдет автоматически через layout
     } catch {}
   };
 
@@ -54,7 +52,7 @@ export default function Signin() {
       </Link>
       <form onSubmit={handleLogin} className={styles.modal__form}>
         <input
-          className={classNames(styles.modal__input)}
+          className={styles.modal__input}
           type="text"
           placeholder="Эл. почта"
           value={email}
@@ -63,7 +61,7 @@ export default function Signin() {
           disabled={loading}
         />
         <input
-          className={classNames(styles.modal__input)}
+          className={styles.modal__input}
           type="password"
           placeholder="Пароль"
           value={password}

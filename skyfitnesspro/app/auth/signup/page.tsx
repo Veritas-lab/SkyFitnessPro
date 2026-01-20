@@ -1,19 +1,16 @@
 'use client';
 
 import styles from './signup.module.css';
-import classNames from 'classnames';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { register, clearError } from '@/store/features/authSlice';
-import { toast } from 'react-toastify';
 
 export default function Signup() {
   const dispatch = useAppDispatch();
   const { error, loading } = useAppSelector((state) => state.auth);
   const [email, setEmail] = useState('');
-  const [username] = useState('');
   const [password, setPassword] = useState('');
   const [repeat, setRepeat] = useState('');
 
@@ -23,34 +20,33 @@ export default function Signup() {
 
   useEffect(() => {
     if (error) {
-      toast.error(error);
+      alert(error);
     }
   }, [error]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email.trim() || !username.trim() || !password.trim() || !repeat.trim()) {
-      toast.error("Заполните все поля");
+    if (!email.trim() || !password.trim() || !repeat.trim()) {
+      alert('Заполните все поля');
       return;
     }
 
     if (password !== repeat) {
-      toast.error("Пароли не совпадают");
+      alert('Пароли не совпадают');
       return;
     }
 
     if (password.length < 6) {
-      toast.error("Пароль должен содержать минимум 6 символов");
+      alert('Пароль должен содержать минимум 6 символов');
       return;
     }
 
     try {
-      const result = await dispatch(register({ email, username, password }));
+      const result = await dispatch(register({ email, password }));
       
       if (register.fulfilled.match(result)) {
-        toast.success('Регистрация успешна! Теперь вы можете войти.');
-        // Модалка закроется автоматически, пользователь перейдет на вход
+        // Редирект произойдет автоматически через layout
       }
     } catch {}
   };
@@ -70,7 +66,7 @@ export default function Signup() {
       </Link>
       <form onSubmit={handleRegister} className={styles.modal__form}>
         <input
-          className={classNames(styles.modal__input, styles.login)}
+          className={`${styles.modal__input} ${styles.login}`}
           type="text"
           placeholder="Эл. почта"
           value={email}
@@ -79,7 +75,7 @@ export default function Signup() {
           disabled={loading}
         />
         <input
-          className={classNames(styles.modal__input)}
+          className={styles.modal__input}
           type="password"
           placeholder="Пароль"
           value={password}
@@ -89,7 +85,7 @@ export default function Signup() {
           minLength={6}
         />
         <input
-          className={classNames(styles.modal__input)}
+          className={styles.modal__input}
           type="password"
           placeholder="Повторите пароль"
           value={repeat}
