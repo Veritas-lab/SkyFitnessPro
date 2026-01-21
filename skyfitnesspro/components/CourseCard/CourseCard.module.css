@@ -1,0 +1,179 @@
+.courseContent {
+    padding-left: 30px;
+  }
+  .courseParam {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 16px;
+    line-height: 110%;
+    letter-spacing: 0px;
+    vertical-align: bottom;
+    font-variant-numeric: lining-nums proportional-nums;
+  }
+  .courseTitleText {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: normal;
+    font-size: 32px;
+    line-height: 110%;
+    letter-spacing: 0px;
+    font-variant-numeric: lining-nums proportional-nums;
+    margin-bottom: 20px;
+  }
+  .inlineInfo {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  
+  .durationTag {
+    display: flex;
+    align-items: center;
+    width: 103px;
+    height: 38px;
+    background: hsla(0, 0%, 97%, 1);
+    padding: 10px;
+    border-radius: 50px;
+    gap: 6px;
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+  
+  .durationText {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 110%;
+    color: hsla(0, 0%, 13%, 1);
+  }
+  
+  .timeTag {
+    display: flex;
+    align-items: center;
+    width: 163px;
+    height: 38px;
+    background: hsla(0, 0%, 97%, 1);
+    padding: 10px;
+    border-radius: 50px;
+    gap: 6px;
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+  .addIcon {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 2;
+    width: 48px;
+    height: 48px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 600;
+    color: #000000;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s, transform 0.2s;
+  }
+  
+  .addIcon:hover {
+    background-color: #f7f7f7;
+    transform: scale(1.05);
+  }
+  
+  .addIcon:active {
+    transform: scale(0.95);
+  }
+  .courseCard {
+    width: 360px;
+    height: 501px;
+    background: #ffffff;
+    border-radius: 30px;
+    box-shadow: 0px 4px 67px -12px #00000021;
+    opacity: 1;
+    padding-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow: hidden;
+    transition: box-shadow 0.3s;
+  }
+  
+  .courseCard:hover {
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .image {
+    object-fit: cover;
+    object-position: center;
+    z-index: 1;
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+  
+  .imageOverlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    padding: 16px;
+  }
+  
+  .courseTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    margin: 0;
+  }
+  
+  .courseImage {
+    width: 360px;
+    height: 325px;
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 30px 30px 0 0;
+  }
+  
+  .categoryTag {
+    display: inline-block;
+    background-color: #f3f4f6;
+    color: #374151;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .difficultyTag {
+    display: flex;
+    align-items: center;
+    width: 129px;
+    height: 38px;
+    background-color: #f7f7f7;
+    color: #4b5563;
+    padding: 10px;
+    border-radius: 50px;
+    gap: 6px;
+    opacity: 1;
+    transform: rotate(0deg);
+    font-size: 0.875rem;
+  }
+  
+  .courseCardLink {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }

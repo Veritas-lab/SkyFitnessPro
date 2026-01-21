@@ -57,7 +57,6 @@ export default function WorkoutPage() {
             }
           } catch (progressError) {
             // Если прогресс не найден, используем нули
-            console.warn('Прогресс не загружен:', progressError);
           }
         }
       } catch (error: unknown) {
@@ -132,7 +131,7 @@ export default function WorkoutPage() {
 
       <div className={styles.exercisesBlock}>
         <h2 className={styles.exercisesBlockTitle}>
-          Упражнения тренировки {workoutData.name ? `"${workoutData.name}"` : ''}
+          Упражнения тренировки {workoutData.name || '2'}
         </h2>
         <ul className={styles.exercisesBlockUl}>
           {workoutData.exercises.map((exercise, index: number) => {
@@ -143,7 +142,7 @@ export default function WorkoutPage() {
             
             return (
               <li className={styles.exercisesBlockList} key={exercise._id || index}>
-                {exercise.name} ({progressPercentage}%)
+                {exercise.name} {progressPercentage}%
               </li>
             );
           })}

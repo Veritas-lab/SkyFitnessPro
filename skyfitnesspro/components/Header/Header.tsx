@@ -3,7 +3,6 @@
 import styles from './Header.module.css';
 import Image from 'next/image';
 import Link from 'next/link';
-import BaseButton from '../Button/Button';
 import { useState } from 'react';
 import { useAppSelector } from '../../store/store';
 import ModalUser from '../ModalUser/ModalUser';
@@ -41,7 +40,13 @@ export default function Header() {
           </p>
         </div>
         {!user && (
-          <BaseButton disabled={isLoading} onClick={openLogin} text="Войти" />
+          <button
+            disabled={isLoading}
+            onClick={openLogin}
+            className={styles.button}
+          >
+            Войти
+          </button>
         )}
         {user && (
           <div className={styles.header__user} onClick={toggleModal}>

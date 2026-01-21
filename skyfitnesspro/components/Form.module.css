@@ -1,0 +1,144 @@
+.formContainer {
+  background-color: #ffffff;
+  border-radius: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  width: 360px;
+}
+
+.formContainerLogin {
+  height: 425px;
+}
+
+.formContainerRegister {
+  height: 520px;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 48px;
+}
+
+.form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inputWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 30px;
+  font-size: 16px;
+  font-family: 'Roboto', sans-serif;
+  background-color: #ffffff;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus {
+  border-color: #BCEC30;
+  box-shadow: 0 0 0 2px rgba(188, 236, 48, 0.2);
+}
+
+.inputError {
+  border-color: #ef4444;
+}
+
+.input::placeholder {
+  color: #9ca3af;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.passwordToggle:hover {
+  color: #374151;
+}
+
+.errorMessage {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #ef4444;
+  padding-left: 16px;
+}
+
+.primaryButton {
+  width: 100%;
+  padding: 16px;
+  background-color: #BCEC30;
+  color: #000000;
+  font-weight: 600;
+  font-size: 16px;
+  font-family: 'Roboto', sans-serif;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 8px;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background-color: #a8d228;
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  width: 100%;
+  padding: 16px;
+  background-color: #ffffff;
+  color: #000000;
+  font-weight: 600;
+  font-size: 16px;
+  font-family: 'Roboto', sans-serif;
+  border: 2px solid #000000;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.secondaryButton:hover {
+  background-color: #f9fafb;
+}
+
+.errorContainer {
+  padding: 12px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.errorContainerText {
+  font-size: 14px;
+  color: #ef4444;
+}

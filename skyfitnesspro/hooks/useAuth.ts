@@ -141,10 +141,49 @@ export function useAuth() {
     router.push('/');
   }, [router, dispatch]);
 
+  // Функция для обновления данных пользователя
+  const refreshUser = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+    
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      loadingRef.current = true;
+      const res = await usersApi.getMe();
+      if (mountedRef.current) {
+        setState({
+          user: res.data,
+          isLoading: false,
+          error: null,
+          isAuthenticated: true,
+        });
+        // Синхронизируем с Redux
+        dispatch(setUser(res.data.email));
+        dispatch(setToken(token));
+      }
+    } catch (err: unknown) {
+      localStorage.removeItem('token');
+      const message = getErrorMessage(err);
+      if (mountedRef.current) {
+        setState({
+          user: null,
+          isLoading: false,
+          error: message || 'Сессия истекла',
+          isAuthenticated: false,
+        });
+      }
+      dispatch(logoutAction());
+    } finally {
+      loadingRef.current = false;
+    }
+  }, [dispatch]);
+
   return {
     ...state,
     login,
     register,
     logout,
+    refreshUser,
   };
 }

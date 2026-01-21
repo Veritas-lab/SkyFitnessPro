@@ -30,9 +30,7 @@ interface RegisterCredentials {
 export async function loginUser(credentials: LoginCredentials): Promise<string> {
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: {},
     body: JSON.stringify(credentials),
   });
 
@@ -53,9 +51,7 @@ export async function loginUser(credentials: LoginCredentials): Promise<string> 
 export async function registerUser(credentials: RegisterCredentials): Promise<string> {
   const response = await fetch(`${API_BASE_URL}/auth/register`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: {},
     body: JSON.stringify(credentials),
   });
 
@@ -78,7 +74,6 @@ export async function getUser(token: string) {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
     },
   });
 
@@ -106,9 +101,7 @@ export async function getUserByToken(token: string) {
 export async function getCourses() {
   const response = await fetch(`${API_BASE_URL}/courses`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: {},
   });
 
   if (!response.ok) {
@@ -135,9 +128,7 @@ export async function getAllCourses() {
 export async function getCourseById(courseId: string) {
   const response = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: {},
   });
 
   if (!response.ok) {
@@ -159,7 +150,6 @@ async function addCourseToUserWithToken(token: string, courseId: string) {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
     },
     body: JSON.stringify({ courseId }),
   });
@@ -201,7 +191,6 @@ export async function removeCourseFromUser(token: string, courseId: string) {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
     },
   });
 
@@ -245,13 +234,21 @@ export function verifyToken(token: string): { id: string; email?: string } | nul
     if (parts.length !== 3) return null;
 
     // Декодирование base64 (работает и в браузере, и в Node.js)
-    let payload: any;
+    interface JwtPayload {
+      id?: string;
+      userId?: string;
+      sub?: string;
+      email?: string;
+      exp?: number;
+    }
+    
+    let payload: JwtPayload;
     if (typeof window === 'undefined') {
       // Серверная среда (Node.js)
-      payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
+      payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8')) as JwtPayload;
     } else {
       // Браузерная среда
-      payload = JSON.parse(atob(parts[1]));
+      payload = JSON.parse(atob(parts[1])) as JwtPayload;
     }
     
     // Проверяем, что токен не истек (если есть exp)
@@ -283,7 +280,6 @@ export async function restartCourseForUser(
   const response = await fetch(`${API_BASE_URL}/courses/${courseId}/reset`, {
     method: 'PATCH',
     headers: {
-      'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
     },
     body: JSON.stringify({}),
@@ -321,7 +317,6 @@ export async function getWorkoutProgress(
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
       },
     }
   );
@@ -356,7 +351,6 @@ export async function getAllWorkoutsProgress(
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
       },
     }
   );
@@ -384,7 +378,6 @@ export async function getWorkoutById(workoutId: string, token?: string) {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
     },
   });
 

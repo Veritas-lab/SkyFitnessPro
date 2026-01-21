@@ -7,7 +7,7 @@ import BaseButton from '@/components/Button/Button';
 import { useAppSelector } from '@/store/store';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { CourseTypes } from '@/sharedTyres/shared.Types';
+import type { Course } from '@/lib/types';
 import { getCoursesId } from '@/servises/course/courseApi';
 import { AxiosError } from 'axios';
 import { useModal } from '@/context/ModalContext';
@@ -18,7 +18,7 @@ export default function Course() {
   const user = useAppSelector((state) => state.auth.user);
   const params = useParams<{ courses_id: string }>();
   const [isLoading, setIsLoading] = useState(false);
-  const [course, setCourses] = useState<CourseTypes | null>(null);
+  const [course, setCourses] = useState<Course | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isWorkoutsModalOpen, setIsWorkoutsModalOpen] = useState(false);
   const { openLogin } = useModal();
@@ -76,9 +76,18 @@ export default function Course() {
     );
   }
 
-  const imageName = course.nameEN.toLowerCase().replace(' ', '');
-  const imagePath = `/img/skill${imageName}.png`;
-  const imagePathMob = `/img/${imageName}.png`;
+  const imageName = course.nameEN.toLowerCase().replace(/\s+/g, '');
+  // Используем существующие файлы из папки img
+  const imageMap: Record<string, string> = {
+    yoga: '/img/yoga.png',
+    stretching: '/img/stretching.png',
+    fitness: '/img/fitness.png',
+    'step-aerobics': '/img/step-aerobics.png',
+    'stepaerobics': '/img/step-aerobics.png',
+    bodyflex: '/img/bodyflex.png',
+  };
+  const imagePath = imageMap[imageName] || `/img/${imageName}.png`;
+  const imagePathMob = imageMap[imageName] || `/img/${imageName}.png`;
 
   return (
     <div>

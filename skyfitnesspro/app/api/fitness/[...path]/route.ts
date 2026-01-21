@@ -127,6 +127,8 @@ async function handleRequest(
       headers['Authorization'] = authHeader;
     }
 
+    // НЕ добавляем Content-Type, так как API не поддерживает этот заголовок
+
     const response = await fetch(url, {
       method,
       headers,
@@ -136,15 +138,44 @@ async function handleRequest(
     let data;
     const contentType = response.headers.get('content-type');
     
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { message: text || 'Ошибка сервера' };
+    try {
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { message: text || 'Ошибка сервера' };
+        }
       }
+    } catch (parseError) {
+      // Если не удалось распарсить ответ, возвращаем базовое сообщение
+      data = { 
+        message: response.status === 400 
+          ? 'Неверный формат запроса. Проверьте отправляемые данные.' 
+          : 'Ошибка при обработке ответа сервера' 
+      };
+    }
+
+    // Если статус 500, возвращаем более информативное сообщение
+    if (response.status === 500) {
+      // Проверяем, не является ли это запросом к несуществующему эндпоинту
+      if (path === 'users/me/courses' && method === 'GET') {
+        return NextResponse.json(
+          { 
+            message: 'Эндпоинт GET /users/me/courses не существует. Используйте GET /users/me для получения данных пользователя с выбранными курсами.' 
+          },
+          { status: 404 }
+        );
+      }
+      
+      return NextResponse.json(
+        { 
+          message: data?.message || `Ошибка сервера при запросе к ${path}. Проверьте правильность эндпоинта и параметров запроса.` 
+        },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json(data, { status: response.status });
@@ -157,7 +188,7 @@ async function handleRequest(
     }
     
     return NextResponse.json(
-      { message: 'Ошибка при обращении к API' },
+      { message: error instanceof Error ? error.message : 'Ошибка при обращении к API' },
       { status: 500 }
     );
   }

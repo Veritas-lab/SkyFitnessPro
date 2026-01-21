@@ -12,7 +12,7 @@ export default function AuthButtons() {
   if (isAuth) {
     return (
       <div className={styles.userInfo}>
-        <Link href="/profile" className={styles.profileButton}>
+        <Link href="/main" className={styles.profileButton}>
           {user || 'Профиль'}
         </Link>
       </div>
@@ -22,7 +22,7 @@ export default function AuthButtons() {
   return (
     <div className={styles.authButtons}>
       <button 
-        onClick={() => openLogin()}
+        onClick={openLogin}
         className={styles.loginButton}
       >
         Вход

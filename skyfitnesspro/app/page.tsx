@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getErrorMessage } from '@/lib/utils';
 import { useModal } from '@/context/ModalContext';
 import styles from './page.module.css';
+import PromoBanner from '@/components/PromoBanner/PromoBanner';
 
 // Маппинг изображений для курсов
 const courseImageMap: Record<string, string> = {
@@ -38,7 +39,7 @@ const bgColorMap: Record<string, string> = {
 };
 
 export default function Home() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, refreshUser } = useAuth();
   const { openLogin } = useModal();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,11 +53,23 @@ export default function Home() {
     try {
       loadingRef.current = true;
       setLoading(true);
-      const res = await coursesApi.getAll();
-      setCourses(res.data);
       setError(null);
+      const res = await coursesApi.getAll();
+      if (res && res.data && Array.isArray(res.data)) {
+        setCourses(res.data);
+      } else {
+        setError('Неверный формат данных от сервера');
+      }
     } catch (err) {
-      setError(getErrorMessage(err));
+      const errorMessage = getErrorMessage(err);
+      // Если ошибка 401, не показываем её как критическую для главной страницы
+      // (курсы должны загружаться даже для неавторизованных пользователей)
+      if (!errorMessage.includes('401') && !errorMessage.includes('Unauthorized') && !errorMessage.includes('Сессия истекла')) {
+        setError(errorMessage);
+      } else {
+        // Для 401 просто не показываем ошибку, курсы должны загружаться
+        setError(null);
+      }
     } finally {
       setLoading(false);
       loadingRef.current = false;
@@ -78,13 +91,20 @@ export default function Home() {
     try {
       setAddingCourseId(courseId);
       await usersApi.addCourse(courseId);
-      const userRes = await usersApi.getMe();
-      alert('Курс успешно добавлен!');
-      if (typeof window !== 'undefined') {
-        window.location.reload();
+      // Обновляем данные пользователя без перезагрузки страницы
+      if (refreshUser) {
+        await refreshUser();
       }
+      alert('Курс успешно добавлен!');
     } catch (err) {
-      alert(getErrorMessage(err));
+      const errorMessage = getErrorMessage(err);
+      // Если ошибка 401 (неавторизован), очищаем токен
+      if (errorMessage.includes('401') || errorMessage.includes('неавторизован') || errorMessage.includes('Unauthorized')) {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('token');
+        }
+      }
+      alert(errorMessage);
     } finally {
       setAddingCourseId(null);
     }
@@ -128,21 +148,13 @@ export default function Home() {
     <main className={styles.home}>
       {/* Заголовок и баннер */}
       <div className={styles.hero}>
-        <h1 className={styles.heroTitle}>
-          Начните заниматься спортом
-          <br />
-          и улучшите качество жизни
-        </h1>
-        <div className={styles.heroImage}>
-          <Image
-            src="/img/change_body.png"
-            alt="Измени своё тело"
-            width={400}
-            height={400}
-            className="object-contain"
-            style={{ width: 'auto', height: 'auto' }}
-            priority
-          />
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>
+            Начните заниматься спортом
+            <br />
+            и улучшите качество жизни
+          </h1>
+          <PromoBanner />
         </div>
       </div>
 
@@ -169,17 +181,13 @@ export default function Home() {
               <div key={course._id} className={styles.courseCard}>
                 {/* Фото */}
                 <div className={`${styles.courseImageWrapper} ${getCourseBgColor(course)}`}>
-                  <Link href={`/courses/${course._id}`}>
+                  <Link href={`/courses/${course._id}`} className={styles.courseImageLink}>
                     <Image
                       src={getCourseImage(course)}
                       alt={course.nameRU}
-                      width={360}
-                      height={325}
+                      fill
                       className="object-cover cursor-pointer"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                      }}
+                      sizes="(max-width: 768px) 100vw, 360px"
                     />
                   </Link>
                 </div>

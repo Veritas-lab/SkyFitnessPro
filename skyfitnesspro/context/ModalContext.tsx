@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface ModalContextType {
-  isLoginOpen: boolean;
+  isLoginModalOpen: boolean;
   openLogin: () => void;
   closeLogin: () => void;
 }
@@ -11,13 +11,13 @@ interface ModalContextType {
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
 
 export function ModalProvider({ children }: { children: ReactNode }) {
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
-  const openLogin = () => setIsLoginOpen(true);
-  const closeLogin = () => setIsLoginOpen(false);
+  const openLogin = () => setIsLoginModalOpen(true);
+  const closeLogin = () => setIsLoginModalOpen(false);
 
   return (
-    <ModalContext.Provider value={{ isLoginOpen, openLogin, closeLogin }}>
+    <ModalContext.Provider value={{ isLoginModalOpen, openLogin, closeLogin }}>
       {children}
     </ModalContext.Provider>
   );

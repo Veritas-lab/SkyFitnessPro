@@ -1,10 +1,9 @@
-'use client';
-
+import React from 'react';
 import styles from './Button.module.css';
 
 interface ButtonProps {
   text: string;
-  onClick?: () => void;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   disabled?: boolean;
   fullWidth?: boolean;
 }

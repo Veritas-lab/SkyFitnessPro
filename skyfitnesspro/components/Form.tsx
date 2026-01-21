@@ -6,6 +6,7 @@ import { registerSchema, loginSchema, RegisterFormData, LoginFormData } from '@/
 import { useAuth } from '@/hooks/useAuth';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import styles from './Form.module.css';
 
 interface FormProps {
   mode: 'login' | 'register';
@@ -124,28 +125,20 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
     if (mode === 'login') {
       loginForm.reset();
       loginForm.clearErrors();
-      setShowPassword(false);
     } else {
       registerForm.reset();
       registerForm.clearErrors();
-      setShowPassword(false);
-      setShowConfirmPassword(false);
     }
   }, [mode, loginForm, registerForm]);
 
   return (
     <div
-      className="bg-white flex flex-col items-center"
-      style={{
-        width: '360px',
-        height: mode === 'register' ? '520px' : '425px',
-        borderRadius: '30px',
-        padding: '40px',
-        gap: '48px',
-      }}
+      className={`${styles.formContainer} ${
+        mode === 'register' ? styles.formContainerRegister : styles.formContainerLogin
+      }`}
     >
       {/* Логотип */}
-      <div className="flex items-center justify-center">
+      <div className={styles.logoContainer}>
         <Image
           src="/img/logo.svg"
           alt="SkyFitnessPro"
@@ -162,11 +155,10 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
 
       <form
         onSubmit={currentForm.handleSubmit(onSubmit)}
-        className="w-full flex flex-col"
-        style={{ gap: '16px' }}
+        className={styles.form}
       >
         {/* Поле Email / Эл. почта */}
-        <div>
+        <div className={styles.inputWrapper}>
           <input
             {...(mode === 'login' 
               ? loginForm.register('email', {
@@ -187,25 +179,22 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
             type="email"
             id="email"
             autoComplete={mode === 'login' ? 'email' : 'email'}
-            className={`w-full px-4 py-3 border rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white ${
+            className={`${styles.input} ${
               (mode === 'login' ? loginForm.formState.errors.email : registerForm.formState.errors.email)
-                ? 'border-red-500'
-                : 'border-gray-300'
+                ? styles.inputError
+                : ''
             }`}
             placeholder={mode === 'login' ? 'Логин' : 'Эл. почта'}
-            style={{
-              borderRadius: '30px',
-            }}
           />
           {(mode === 'login' ? loginForm.formState.errors.email : registerForm.formState.errors.email) && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className={styles.errorMessage}>
               {(mode === 'login' ? loginForm.formState.errors.email : registerForm.formState.errors.email)?.message}
             </p>
           )}
         </div>
 
         {/* Поле Пароль */}
-        <div className="relative">
+        <div className={styles.inputWrapper}>
           <input
             {...(mode === 'login'
               ? loginForm.register('password', {
@@ -226,20 +215,18 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
             type={showPassword ? 'text' : 'password'}
             id="password"
             autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-            className={`w-full px-4 py-3 pr-12 border rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white ${
+            className={`${styles.input} ${
               (mode === 'login' ? loginForm.formState.errors.password : registerForm.formState.errors.password)
-                ? 'border-red-500'
-                : 'border-gray-300'
+                ? styles.inputError
+                : ''
             }`}
             placeholder="Пароль"
-            style={{
-              borderRadius: '30px',
-            }}
+            style={{ paddingRight: '48px' }}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+            className={styles.passwordToggle}
             aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
           >
             {showPassword ? (
@@ -275,7 +262,7 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
             )}
           </button>
           {(mode === 'login' ? loginForm.formState.errors.password : registerForm.formState.errors.password) && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className={styles.errorMessage}>
               {(mode === 'login' ? loginForm.formState.errors.password : registerForm.formState.errors.password)?.message}
             </p>
           )}
@@ -283,7 +270,7 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
 
         {/* Поле Повторите пароль (только для регистрации) */}
         {mode === 'register' && (
-          <div className="relative">
+          <div className={styles.inputWrapper}>
             <input
               {...registerForm.register('confirmPassword', {
                 onChange: () => {
@@ -295,20 +282,18 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
               type={showConfirmPassword ? 'text' : 'password'}
               id="confirmPassword"
               autoComplete="new-password"
-              className={`w-full px-4 py-3 pr-12 border rounded-[30px] focus:ring-2 focus:ring-[#BCEC30] focus:border-transparent outline-none bg-white ${
+              className={`${styles.input} ${
                 registerForm.formState.errors.confirmPassword
-                  ? 'border-red-500'
-                  : 'border-gray-300'
+                  ? styles.inputError
+                  : ''
               }`}
               placeholder="Повторите пароль"
-              style={{
-                borderRadius: '30px',
-              }}
+              style={{ paddingRight: '48px' }}
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+              className={styles.passwordToggle}
               aria-label={showConfirmPassword ? 'Скрыть пароль' : 'Показать пароль'}
             >
               {showConfirmPassword ? (
@@ -344,15 +329,15 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
               )}
             </button>
             {registerForm.formState.errors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-600">{registerForm.formState.errors.confirmPassword.message}</p>
+              <p className={styles.errorMessage}>{registerForm.formState.errors.confirmPassword.message}</p>
             )}
           </div>
         )}
 
         {/* Общее сообщение об ошибке (если не привязано к полю) */}
         {error && !(mode === 'login' ? loginForm.formState.errors.email : registerForm.formState.errors.email) && !(mode === 'login' ? loginForm.formState.errors.password : registerForm.formState.errors.password) && !(mode === 'register' && registerForm.formState.errors.confirmPassword) && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-600">{error}</p>
+          <div className={styles.errorContainer}>
+            <p className={styles.errorContainerText}>{error}</p>
           </div>
         )}
 
@@ -360,10 +345,7 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-[#BCEC30] hover:bg-[#a8d228] text-black font-medium py-3 px-6 rounded-[30px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{
-            borderRadius: '30px',
-          }}
+          className={styles.primaryButton}
         >
           {isLoading
             ? 'Загрузка...'
@@ -375,11 +357,15 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
         {/* Кнопка переключения режима */}
         <button
           type="button"
-          onClick={() => onModeChange(mode === 'login' ? 'register' : 'login')}
-          className="w-full bg-white border-2 border-black text-black font-medium py-3 px-6 rounded-[30px] transition-colors hover:bg-gray-50"
-          style={{
-            borderRadius: '30px',
+          onClick={() => {
+            const newMode = mode === 'login' ? 'register' : 'login';
+            setShowPassword(false);
+            if (newMode === 'register') {
+              setShowConfirmPassword(false);
+            }
+            onModeChange(newMode);
           }}
+          className={styles.secondaryButton}
         >
           {mode === 'login' ? 'Зарегистрироваться' : 'Войти'}
         </button>

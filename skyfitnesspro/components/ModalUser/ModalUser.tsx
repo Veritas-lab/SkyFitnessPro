@@ -22,8 +22,8 @@ export default function ModalUser() {
   return (
     <div className={styles.modal}>
       <div className={styles.modalContent}>
-        <Link href="/main" className={styles.modalLink}>
-          Профиль
+        <Link href="/users/me/courses" className={styles.modalLink}>
+          Мой профиль
         </Link>
         <button onClick={handleLogout} className={styles.logoutButton}>
           Выйти

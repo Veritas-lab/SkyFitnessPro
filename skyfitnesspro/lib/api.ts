@@ -6,14 +6,32 @@ const api = axios.create({
   timeout: 10000, // 10 секунд таймаут для запросов
 });
 
-// Interceptor для token
+// Interceptor для token и удаления Content-Type
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
   }
+  // Удаляем Content-Type, так как API не поддерживает этот заголовок
+  if (config.headers['Content-Type']) {
+    delete config.headers['Content-Type'];
+  }
   return config;
 });
+
+// Interceptor для обработки ошибок ответа
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Если получили 401, очищаем токен
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Auth
 // Согласно документации API:

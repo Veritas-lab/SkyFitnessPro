@@ -31,8 +31,7 @@ export default function ModalWorkouts({ courseId, onClose }: ModalWorkoutsProps)
           const progressRes = await progressApi.getCourseProgress(courseId);
           setProgress(progressRes.data);
         } catch (progressErr) {
-          // Прогресс не обязателен
-          console.warn('Прогресс не загружен:', progressErr);
+          // Прогресс не обязателен, игнорируем ошибку
         }
       } catch (err) {
         setError(getErrorMessage(err));

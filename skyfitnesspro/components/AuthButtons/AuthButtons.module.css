@@ -1,49 +1,49 @@
 .loginButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #bcec30;
-    color: #000000;
-    border-radius: 46px;
-    padding: 16px 26px;
-    gap: 8px;
-    opacity: 1;
-    text-decoration: none;
-    transition: color 0.2s;
-    font-size: 16px;
-    font-weight: 500;
-    border: none;
-    min-width: 103px; 
-    min-height: 52px;
-  }
-  
-  .loginButton:hover {
-    color: #2563eb;
-  }
-  
-  .registerButton {
-    background-color: #2563eb;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 4px;
-    text-decoration: none;
-    transition: background-color 0.2s;
-  }
-  
-  .registerButton:hover {
-    background-color: #1d4ed8;
-  }
-  
-  .userName {
-    color: #4b5563;
-  }
-  
-  .profileButton {
-    color: #2563eb;
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  
-  .profileButton:hover {
-    color: #1d4ed8;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #bcec30;
+  color: #000000;
+  border-radius: 46px;
+  padding: 16px 26px;
+  gap: 8px;
+  opacity: 1;
+  text-decoration: none;
+  transition: color 0.2s;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  min-width: 103px; 
+  min-height: 52px;
+}
+
+.loginButton:hover {
+  color: #2563eb;
+}
+
+.registerButton {
+  background-color: #2563eb;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.registerButton:hover {
+  background-color: #1d4ed8;
+}
+
+.userName {
+  color: #4b5563;
+}
+
+.profileButton {
+  color: #2563eb;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.profileButton:hover {
+  color: #1d4ed8;
+}

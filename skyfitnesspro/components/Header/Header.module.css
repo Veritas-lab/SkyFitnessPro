@@ -85,12 +85,38 @@
     }
   }
   
-  .header__userText {
-    font-weight: 400;
-    font-size: 24px;
-    color: #000;
-    line-height: 110%;
-    @media screen and (max-width: 495px) {
-      display: none;
-    }
+.header__userText {
+  font-weight: 400;
+  font-size: 24px;
+  color: #000;
+  line-height: 110%;
+  @media screen and (max-width: 495px) {
+    display: none;
   }
+}
+
+.button {
+  padding: 16px 26px;
+  border-radius: 46px;
+  background: #bcec30;
+  border: none;
+  font-size: 18px;
+  font-weight: 400;
+  color: #000000;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.button:hover {
+  background: #a8d228;
+}
+
+.button:active {
+  background: #95bb24;
+}
+
+.button:disabled {
+  background: #e0e0e0;
+  color: #9e9e9e;
+  cursor: not-allowed;
+}

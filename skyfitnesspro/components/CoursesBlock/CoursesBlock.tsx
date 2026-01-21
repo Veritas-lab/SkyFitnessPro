@@ -25,7 +25,7 @@ export default function CoursesBlock({
         <div className={styles.empty}>У вас пока нет выбранных курсов</div>
       ) : (
         courses.map((course) => (
-          <CourseCard key={course._id} course={course} courseList={courses} />
+          <CourseCard key={course._id} course={course} />
         ))
       )}
     </div>
