@@ -199,14 +199,12 @@ export default function Home() {
       <div className={styles.header}>
         <Logo />
         <HeaderText />
-        {!isAuthenticated && (
-          <button 
-            className={styles.loginButton}
-            onClick={openLogin}
-          >
-            Войти
-          </button>
-        )}
+        <button 
+          className={styles.loginButton}
+          onClick={openLogin}
+        >
+          Войти
+        </button>
       </div>
 
       {/* Заголовок и баннер */}

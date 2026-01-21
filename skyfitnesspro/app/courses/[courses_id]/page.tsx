@@ -2,7 +2,8 @@
 
 import Image from 'next/image';
 import styles from './courses.module.css';
-import Header from '@/components/Header/Header';
+import Logo from '@/components/Logo/Logo';
+import HeaderText from '@/components/HeaderText/HeaderText';
 import BaseButton from '@/components/Button/Button';
 import { useAppSelector } from '@/store/store';
 import { useEffect, useState } from 'react';
@@ -90,20 +91,46 @@ export default function Course() {
   const imagePathMob = imageMap[imageName] || `/img/${imageName}.png`;
 
   return (
-    <div>
-      <Header />
+    <div className={styles.coursePage}>
+      {/* Header */}
+      <div className={styles.header}>
+        <Logo />
+        <HeaderText />
+        {!user && (
+          <button 
+            className={styles.loginButton}
+            onClick={openLogin}
+          >
+            Войти
+          </button>
+        )}
+        {user && (
+          <div className={styles.userInfo}>
+            <Image
+              src="/img/Profile.svg"
+              alt="profile"
+              width={50}
+              height={50}
+            />
+            <p className={styles.userText}>{user}</p>
+          </div>
+        )}
+      </div>
+
       <div className={styles.course__conteiner}>
-        <div className={styles.course__ImagedescTop}>
-          <Image
-            src={imagePath}
-            alt={course.nameEN}
-            loading="eager"
-            width={1160}
-            height={310}
-          />
-        </div>
-        <div className={styles.course__ImageMob}>
-          <Image src={imagePathMob} alt="yoga" width={343} height={389} />
+        {/* Hero Banner с названием курса */}
+        <div className={styles.course__heroBanner}>
+          <h1 className={styles.course__heroTitle}>{course.nameRU}</h1>
+          <div className={styles.course__heroImage}>
+            <Image
+              src={imagePath}
+              alt={course.nameEN}
+              loading="eager"
+              fill
+              className={styles.course__heroImageImg}
+              sizes="(max-width: 495px) 100vw, 1160px"
+            />
+          </div>
         </div>
         <h2 className={styles.course__descTitle}>Подойдет для вас, если:</h2>
         <div className={styles.course__desc}>
@@ -120,8 +147,8 @@ export default function Course() {
             <div key={index} className={styles.course__categoryName}>
               <div className={styles.course__categoryImage}>
                 <Image
-                  src="/img/complexity.svg"
-                  alt="Star"
+                  src="/img/plus.svg"
+                  alt="Plus"
                   width={20}
                   height={20}
                   className={styles.course__categorySvg}
