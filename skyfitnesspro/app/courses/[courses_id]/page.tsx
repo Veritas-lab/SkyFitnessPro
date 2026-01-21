@@ -78,17 +78,46 @@ export default function Course() {
   }
 
   const imageName = course.nameEN.toLowerCase().replace(/\s+/g, '');
-  // Используем существующие файлы из папки img
-  const imageMap: Record<string, string> = {
-    yoga: '/img/yoga.png',
-    stretching: '/img/stretching.png',
-    fitness: '/img/fitness.png',
-    'step-aerobics': '/img/step-aerobics.png',
-    'stepaerobics': '/img/step-aerobics.png',
-    bodyflex: '/img/bodyflex.png',
+  const imageNameNoDash = imageName.replace(/-/g, '');
+  
+  // Используем готовые карточки из папки img
+  const cardImageMap: Record<string, string> = {
+    yoga: '/img/youga_card.png',
+    stretching: '/img/stretching_card.png',
+    fitness: '/img/fitness_card.png',
+    'step-aerobics': '/img/step_aerobics_card.png',
+    'stepaerobics': '/img/step_aerobics_card.png',
+    'stepairobic': '/img/step_aerobics_card.png', // вариант без 's' в конце
+    bodyflex: '/img/bodyflex_card.png',
   };
-  const imagePath = imageMap[imageName] || `/img/${imageName}.png`;
-  const imagePathMob = imageMap[imageName] || `/img/${imageName}.png`;
+  
+  // Пробуем найти карточку по разным вариантам имени
+  let cardImagePath = cardImageMap[imageName] || cardImageMap[imageNameNoDash] || cardImageMap[course.nameEN.toLowerCase()];
+  
+  // Дополнительная проверка для step-aerobics (разные варианты написания)
+  if (!cardImagePath) {
+    const nameLower = course.nameEN.toLowerCase();
+    if (nameLower.includes('step') || imageName.includes('step') || imageNameNoDash.includes('step') || 
+        nameLower.includes('аэробик') || nameLower.includes('aerob')) {
+      cardImagePath = '/img/step_aerobics_card.png';
+    }
+  }
+  
+  // Fallback
+  if (!cardImagePath) {
+    cardImagePath = '/img/fitness_card.png';
+  }
+
+  // Фоновые цвета для карточек курсов
+  const getCourseBgColor = (course: Course) => {
+    const name = course.nameRU.toLowerCase();
+    if (name.includes('йога') || name.includes('yoga')) return 'bg-yellow-300';
+    if (name.includes('стретчинг') || name.includes('stretching')) return 'bg-blue-300';
+    if (name.includes('фитнес') || name.includes('fitness')) return 'bg-orange-300';
+    if (name.includes('степ-аэробика') || name.includes('step-aerobics')) return 'bg-pink-300';
+    if (name.includes('бодифлекс') || name.includes('bodyflex')) return 'bg-purple-300';
+    return 'bg-gray-300';
+  };
 
   return (
     <div className={styles.coursePage}>
@@ -118,19 +147,13 @@ export default function Course() {
       </div>
 
       <div className={styles.course__conteiner}>
-        {/* Hero Banner с названием курса */}
+        {/* Готовая карточка курса */}
         <div className={styles.course__heroBanner}>
-          <h1 className={styles.course__heroTitle}>{course.nameRU}</h1>
-          <div className={styles.course__heroImage}>
-            <Image
-              src={imagePath}
-              alt={course.nameEN}
-              loading="eager"
-              fill
-              className={styles.course__heroImageImg}
-              sizes="(max-width: 495px) 100vw, 1160px"
-            />
-          </div>
+          <img
+            src={cardImagePath}
+            alt={course.nameRU}
+            className={styles.course__heroCard}
+          />
         </div>
         <h2 className={styles.course__descTitle}>Подойдет для вас, если:</h2>
         <div className={styles.course__desc}>

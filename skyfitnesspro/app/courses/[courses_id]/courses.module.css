@@ -75,55 +75,28 @@
 
 .course__heroBanner {
   position: relative;
-  width: 100%;
-  max-width: 1160px;
+  width: 1160px;
   height: 310px;
-  background: #FFD700;
-  border-radius: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 40px;
   margin-bottom: 60px;
-  overflow: hidden;
   @media screen and (max-width: 495px) {
-    height: 389px;
-    padding: 20px;
+    width: 100%;
+    height: auto;
     margin-bottom: 40px;
   }
 }
 
-.course__heroTitle {
-  font-weight: 700;
-  font-size: 80px;
-  line-height: 100%;
-  color: #FFFFFF;
-  margin: 0;
-  z-index: 2;
+.course__heroCard {
+  width: 1160px;
+  height: 310px;
+  border-radius: 30px;
+  opacity: 1;
+  transform: rotate(0deg);
   @media screen and (max-width: 495px) {
-    font-size: 48px;
+    width: 100%;
+    height: auto;
   }
 }
 
-.course__heroImage {
-  position: relative;
-  width: 50%;
-  height: 100%;
-  flex-shrink: 0;
-  @media screen and (max-width: 495px) {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 60%;
-    height: 80%;
-  }
-}
-
-.course__heroImageImg {
-  object-fit: contain;
-  object-position: right center;
-}
-  
   .course__ImagedescTop {
     @media screen and (max-width: 495px) {
       display: none;
