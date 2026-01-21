@@ -105,7 +105,6 @@ export default function Home() {
       if (refreshUser) {
         await refreshUser();
       }
-      alert('Курс успешно добавлен!');
     } catch (err) {
       const errorMessage = getErrorMessage(err);
       // Если ошибка 401 (неавторизован), очищаем токен
@@ -114,6 +113,26 @@ export default function Home() {
           localStorage.removeItem('token');
         }
       }
+      alert(errorMessage);
+    } finally {
+      setAddingCourseId(null);
+    }
+  };
+
+  const handleRemoveCourse = async (courseId: string) => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    try {
+      setAddingCourseId(courseId);
+      await usersApi.removeCourse(courseId);
+      // Обновляем данные пользователя без перезагрузки страницы
+      if (refreshUser) {
+        await refreshUser();
+      }
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
       alert(errorMessage);
     } finally {
       setAddingCourseId(null);
@@ -200,6 +219,34 @@ export default function Home() {
                       sizes="(max-width: 768px) 100vw, 360px"
                     />
                   </Link>
+                  
+                  {/* Иконка добавления/удаления */}
+                  <div
+                    className={styles.addIcon}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (!isAdding) {
+                        if (isSelected) {
+                          handleRemoveCourse(course._id);
+                        } else {
+                          handleAddCourse(course._id);
+                        }
+                      }
+                    }}
+                    style={{ cursor: isAdding ? 'not-allowed' : 'pointer' }}
+                  >
+                    {isAdding ? (
+                      <span>...</span>
+                    ) : (
+                      <Image
+                        src={isSelected ? "/img/minus.svg" : "/img/plus.svg"}
+                        alt={isSelected ? "Удалить курс" : "Добавить курс"}
+                        width={26.66666603088379}
+                        height={26.66666603088379}
+                      />
+                    )}
+                  </div>
                 </div>
 
                 {/* Информация */}
@@ -241,22 +288,6 @@ export default function Home() {
                     <span>Сложность</span>
                   </div>
                 </div>
-
-                {/* Кнопка + */}
-                <button
-                  onClick={() => handleAddCourse(course._id)}
-                  disabled={isSelected || isAdding}
-                  className={styles.addButton}
-                  title={
-                    isSelected
-                      ? 'Курс уже добавлен'
-                      : isAdding
-                      ? 'Добавление...'
-                      : 'Добавить курс'
-                  }
-                >
-                  {isSelected ? '✓' : isAdding ? '...' : '+'}
-                </button>
               </div>
             );
           })}

@@ -198,31 +198,31 @@
   flex-shrink: 0;
 }
 
-.addButton {
+.addIcon {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: #ffffff;
-  border-radius: 9999px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: background-color 0.2s ease-in-out;
-  font-size: 24px;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
+  top: 16px;
+  right: 16px;
+  width: 26.66666603088379px;
+  height: 26.66666603088379px;
+  opacity: 1;
+  z-index: 2;
+  transition: transform 0.2s ease-in-out;
 }
 
-@media (min-width: 768px) {
-  .addButton {
-    width: 48px;
-    height: 48px;
-    font-size: 30px;
-  }
+.addIcon:hover {
+  transform: scale(1.1);
+}
+
+.addIcon:active {
+  transform: scale(0.95);
+}
+
+.addIcon span {
+  color: #000000;
+  font-size: 18px;
+  display: block;
+  text-align: center;
+  line-height: 26.66666603088379px;
 }
 
 .addButton:hover {
