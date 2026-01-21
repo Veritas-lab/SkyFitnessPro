@@ -46,6 +46,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [addingCourseId, setAddingCourseId] = useState<string | null>(null);
   const loadingRef = useRef(false);
+  const coursesGridRef = useRef<HTMLDivElement>(null);
+  const [buttonTop, setButtonTop] = useState<number>(0);
 
   const loadCourses = useCallback(async () => {
     if (loadingRef.current) return;
@@ -81,6 +83,14 @@ export default function Home() {
       loadCourses();
     }
   }, [loadCourses]);
+
+  useEffect(() => {
+    if (coursesGridRef.current && courses.length > 0) {
+      const gridHeight = coursesGridRef.current.offsetHeight;
+      const buttonPosition = 350 + gridHeight + 34; // top карточек + высота сетки + отступ
+      setButtonTop(buttonPosition);
+    }
+  }, [courses]);
 
   const handleAddCourse = async (courseId: string) => {
     if (!isAuthenticated) {
@@ -172,7 +182,7 @@ export default function Home() {
           </button>
         </div>
       ) : (
-        <div className={styles.coursesGrid}>
+        <div ref={coursesGridRef} className={styles.coursesGrid}>
           {courses.map((course) => {
             const isSelected = isCourseSelected(course._id);
             const isAdding = addingCourseId === course._id;
@@ -254,11 +264,16 @@ export default function Home() {
       )}
 
       {/* Кнопка Наверх */}
-      <div className={styles.scrollTopButton}>
-        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          Наверх ↑
-        </button>
-      </div>
+      {buttonTop > 0 && (
+        <div 
+          className={styles.scrollTopButton}
+          style={{ top: `${buttonTop}px` }}
+        >
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            Наверх ↑
+          </button>
+        </div>
+      )}
     </main>
   );
 }

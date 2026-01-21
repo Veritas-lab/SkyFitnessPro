@@ -62,7 +62,8 @@
 .courseCard {
   position: relative;
   width: 360px;
-  height: 501px;
+  min-height: 501px;
+  height: fit-content;
   border-radius: 30px;
   gap: 24px;
   opacity: 1;
@@ -109,6 +110,10 @@
   box-sizing: border-box;
 }
 
+.courseInfo a {
+  text-decoration: none;
+}
+
 .courseTitle {
   width: 300px;
   height: 35px;
@@ -124,6 +129,7 @@
   cursor: pointer;
   transition: opacity 0.2s ease-in-out;
   margin: 0;
+  text-decoration: none;
   box-sizing: border-box;
 }
 
@@ -166,7 +172,6 @@
   width: 16px;
   height: 16px;
   object-fit: contain;
-  filter: brightness(0);
   flex-shrink: 0;
 }
 
@@ -190,7 +195,6 @@
   width: 16px;
   height: 16px;
   object-fit: contain;
-  filter: brightness(0);
   flex-shrink: 0;
 }
 
@@ -231,10 +235,11 @@
 }
 
 .scrollTopButton {
-  margin-top: 64px;
-  margin-bottom: 48px;
+  position: absolute;
+  left: 140px;
+  right: 140px;
   text-align: center;
-  padding: 0 140px;
+  margin-bottom: 48px;
 }
 
 .scrollTopButton button {
