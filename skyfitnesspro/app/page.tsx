@@ -10,6 +10,8 @@ import { getErrorMessage } from '@/lib/utils';
 import { useModal } from '@/context/ModalContext';
 import styles from './page.module.css';
 import PromoBanner from '@/components/PromoBanner/PromoBanner';
+import Logo from '@/components/Logo/Logo';
+import HeaderText from '@/components/HeaderText/HeaderText';
 
 // Маппинг изображений для курсов
 const courseImageMap: Record<string, string> = {
@@ -173,8 +175,32 @@ export default function Home() {
     return user?.selectedCourses?.includes(courseId) || false;
   };
 
+  // Порядок курсов для отображения
+  const courseOrder = ['йога', 'стретчинг', 'фитнес', 'степ-аэробика', 'бодифлекс'];
+  
+  const sortedCourses = [...courses].sort((a, b) => {
+    const indexA = courseOrder.findIndex(order => 
+      a.nameRU.toLowerCase().includes(order.toLowerCase())
+    );
+    const indexB = courseOrder.findIndex(order => 
+      b.nameRU.toLowerCase().includes(order.toLowerCase())
+    );
+    
+    // Если курс не найден в порядке, помещаем его в конец
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    
+    return indexA - indexB;
+  });
+
   return (
     <main className={styles.home}>
+      {/* Header */}
+      <div className={styles.header}>
+        <Logo />
+        <HeaderText />
+      </div>
+
       {/* Заголовок и баннер */}
       <div className={styles.hero}>
         <div className={styles.heroContent}>
@@ -202,7 +228,7 @@ export default function Home() {
         </div>
       ) : (
         <div ref={coursesGridRef} className={styles.coursesGrid}>
-          {courses.map((course) => {
+          {sortedCourses.map((course) => {
             const isSelected = isCourseSelected(course._id);
             const isAdding = addingCourseId === course._id;
 

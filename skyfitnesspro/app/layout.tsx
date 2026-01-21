@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Header from '@/components/Header/Header';
 import { Providers } from './Providers';
 
 export const metadata: Metadata = {
@@ -15,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru">
-      <body className="bg-[#F5F5F5]">
+      <body className="bg-[#FAFAFA]">
         <Providers>
           <div 
             className="mx-auto relative"
@@ -25,7 +24,6 @@ export default function RootLayout({
               minHeight: '100vh',
             }}
           >
-            <Header />
             <div 
               className="relative"
               style={{

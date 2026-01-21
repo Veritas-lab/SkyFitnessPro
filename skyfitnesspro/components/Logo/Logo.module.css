@@ -1,15 +1,13 @@
-.logoWrapper {
-    display: flex;
-    align-items: center;
-  }
-  
-  .logo {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-  }
-  
-  .logo img {
-    width: 220px;
-    height: 35px;
-  }
+.logoLink {
+  display: block;
+}
+
+.logo {
+  position: absolute;
+  top: 50px;
+  left: 140px;
+  width: 220px;
+  height: 35px;
+  opacity: 1;
+  object-fit: contain;
+}

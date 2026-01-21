@@ -6,16 +6,16 @@ import styles from './Logo.module.css';
 
 export default function Logo() {
   return (
-    <div className={styles.logoWrapper}>
-      <Link href="/" className={styles.logo}>
-        <Image
-          src="/img/logo.svg" 
-          alt="SkyFitnessPro"
-          width={220}
-          height={35}
-          priority
-        />
-      </Link>
-    </div>
+    <Link href="/" className={styles.logoLink}>
+      <Image
+        src="/img/logo.svg"
+        alt="SkyFitness Pro"
+        width={220}
+        height={35}
+        loading="eager"
+        priority
+        className={styles.logo}
+      />
+    </Link>
   );
 }

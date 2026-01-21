@@ -20,8 +20,8 @@ export default function Header() {
   return (
     <div className={styles.container}>
       <div className={styles.header__block}>
-        <div>
-          <Link href="/">
+        <div className={styles.logoContainer}>
+          <Link href="/" className={styles.logoLink}>
             <Image
               src="/img/logo.svg"
               alt="logo"
@@ -29,10 +29,7 @@ export default function Header() {
               height={35}
               loading="eager"
               priority
-              style={{
-                width: 'auto',
-                height: 'auto',
-              }}
+              className={styles.logo}
             />
           </Link>
           <p className={styles.header__text}>

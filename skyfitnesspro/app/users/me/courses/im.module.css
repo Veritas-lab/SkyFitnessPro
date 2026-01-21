@@ -3,7 +3,7 @@
     width: 100%;
     margin: 0 auto;
     margin: 0 auto;
-    background-color: #ffffff;
+    background-color: #FAFAFA;
     @media screen and (max-width: 495px) {
       width: 100%;
       padding: 0px 16px;
@@ -22,7 +22,6 @@
   }
   
   .userContainer {
-    background-color: #ffffff;
     border-radius: 30px;
     display: -webkit-box;
     display: -ms-flexbox;
@@ -153,7 +152,6 @@
 
   /* Карточка курса */
   .courseCard {
-    background-color: #ffffff;
     border-radius: 30px;
     overflow: hidden;
     box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
@@ -316,7 +314,6 @@
   .emptyState {
     text-align: center;
     padding: 60px 20px;
-    background-color: #ffffff;
     border-radius: 30px;
     box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
   }
@@ -348,7 +345,6 @@
   .error {
     text-align: center;
     padding: 60px 20px;
-    background-color: #ffffff;
     border-radius: 30px;
     box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
   }

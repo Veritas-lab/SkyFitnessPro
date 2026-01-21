@@ -1,26 +1,37 @@
 .home {
   width: 1440px;
-  min-height: 1559px;
+  height: 1559px;
   background-color: #FAFAFA;
   font-family: 'Roboto', sans-serif;
   margin: 0 auto;
   position: relative;
+  padding-top: 0;
+}
+
+.header {
+  position: relative;
+  width: 100%;
+  min-height: 120px;
+  padding-top: 0;
 }
 
 .hero {
   position: relative;
   width: 100%;
   margin-bottom: 50px;
+  margin-top: -30px;
 }
 
 .heroContent {
   position: relative;
   width: 100%;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .heroTitle {
   position: absolute;
-  top: 180px;
+  top: 60px;
   left: 140px;
   width: 947px;
   height: 120px;
@@ -34,6 +45,7 @@
   color: #000000;
   text-align: left;
   margin: 0;
+  padding: 0;
 }
 
 .coursesGrid {
