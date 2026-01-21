@@ -158,35 +158,6 @@ export default function Course() {
             </div>
           ))}
         </div>
-        <div className={styles.course__groupImage}>
-          <div>
-            <Image
-              src="/img/Boy.svg"
-              alt="Boy"
-              width={100}
-              height={100}
-              className={styles.course__svgMan}
-            />
-          </div>
-          <div>
-            <Image
-              src="/img/Vector.png"
-              alt="Vector"
-              width={100}
-              height={100}
-              className={styles.course__svgBlack}
-            />
-          </div>
-          <div>
-            <Image
-              src="/img/Vector_69.png"
-              alt="Vector"
-              width={100}
-              height={100}
-              className={styles.course__svgGreen}
-            />
-          </div>
-        </div>
         <div className={styles.course__groupImageMob}>
           <Image
             src="/img/Boy.svg"
@@ -196,6 +167,39 @@ export default function Course() {
             className={styles.course__manMob}
           />
         </div>
+        {/* Изображение Boy.svg с абсолютным позиционированием */}
+        <div className={styles.course__boyImage}>
+          <Image
+            src="/img/Boy.svg"
+            alt="Boy"
+            width={566}
+            height={567}
+            className={styles.course__boyImageImg}
+          />
+        </div>
+
+        {/* Изображение Vector.png с абсолютным позиционированием */}
+        <div className={styles.course__vectorImage}>
+          <Image
+            src="/img/Vector.png"
+            alt="Vector"
+            width={50}
+            height={43}
+            className={styles.course__vectorImageImg}
+          />
+        </div>
+
+        {/* Изображение Vector_69.png с абсолютным позиционированием */}
+        <div className={styles.course__vector69Image}>
+          <Image
+            src="/img/Vector_69.png"
+            alt="Vector"
+            width={670}
+            height={391}
+            className={styles.course__vector69ImageImg}
+          />
+        </div>
+
         <div className={styles.course__way}>
           <div className={styles.course__wayBlock}>
             <h1 className={styles.course__wayTitle}>
