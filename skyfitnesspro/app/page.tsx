@@ -199,6 +199,14 @@ export default function Home() {
       <div className={styles.header}>
         <Logo />
         <HeaderText />
+        {!isAuthenticated && (
+          <button 
+            className={styles.loginButton}
+            onClick={openLogin}
+          >
+            Войти
+          </button>
+        )}
       </div>
 
       {/* Заголовок и баннер */}
@@ -228,7 +236,7 @@ export default function Home() {
         </div>
       ) : (
         <div ref={coursesGridRef} className={styles.coursesGrid}>
-          {sortedCourses.map((course) => {
+          {sortedCourses.map((course, index) => {
             const isSelected = isCourseSelected(course._id);
             const isAdding = addingCourseId === course._id;
 
@@ -243,6 +251,8 @@ export default function Home() {
                       fill
                       className="object-cover cursor-pointer"
                       sizes="(max-width: 768px) 100vw, 360px"
+                      loading={index === 0 ? "eager" : "lazy"}
+                      priority={index === 0}
                     />
                   </Link>
                   
