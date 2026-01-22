@@ -13,7 +13,6 @@ export default function Logo() {
         width={220}
         height={35}
         loading="eager"
-        priority
         className={styles.logo}
       />
     </Link>

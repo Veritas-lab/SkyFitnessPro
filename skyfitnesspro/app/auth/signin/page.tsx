@@ -46,7 +46,7 @@ export default function Signin() {
             alt="SkyFitnessPro"
             width={220}
             height={35}
-            priority
+            loading="eager"
           />
         </div>
       </Link>

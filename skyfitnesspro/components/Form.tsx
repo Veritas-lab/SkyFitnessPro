@@ -145,7 +145,6 @@ export default function Form({ mode, onModeChange, onSuccess }: FormProps) {
           width={50}
           height={50}
           loading="eager"
-          priority
           style={{
             width: 'auto',
             height: 'auto',

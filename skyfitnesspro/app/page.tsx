@@ -10,8 +10,7 @@ import { getErrorMessage } from '@/lib/utils';
 import { useModal } from '@/context/ModalContext';
 import styles from './page.module.css';
 import PromoBanner from '@/components/PromoBanner/PromoBanner';
-import Logo from '@/components/Logo/Logo';
-import HeaderText from '@/components/HeaderText/HeaderText';
+import Header from '@/components/Header/Header';
 
 // Маппинг изображений для курсов
 const courseImageMap: Record<string, string> = {
@@ -258,25 +257,7 @@ export default function Home() {
   return (
     <main className={styles.home}>
       {/* Header */}
-      <div className={styles.header}>
-        <Logo />
-        <HeaderText />
-        {isAuthenticated ? (
-          <Link 
-            href="/profile"
-            className={styles.loginButton}
-          >
-            Профиль
-          </Link>
-        ) : (
-          <button 
-            className={styles.loginButton}
-            onClick={openLogin}
-          >
-            Войти
-          </button>
-        )}
-      </div>
+      <Header />
 
       {/* Заголовок и баннер */}
       <div className={styles.hero}>

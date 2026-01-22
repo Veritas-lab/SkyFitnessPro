@@ -10,6 +10,7 @@ import { Workout } from '@/lib/types';
 import { workoutsApi, progressApi, coursesApi } from '@/lib/api';
 import Logo from '@/components/Logo/Logo';
 import ModalProgress from '@/components/ModalProgress/ModalProgress';
+import ModalUser from '@/components/ModalUser/ModalUser';
 import { getErrorMessage } from '@/lib/utils';
 
 export default function WorkoutPage() {
@@ -23,6 +24,7 @@ export default function WorkoutPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [currentProgress, setCurrentProgress] = useState<number[]>([]);
 
   useEffect(() => {
@@ -238,7 +240,7 @@ export default function WorkoutPage() {
       <header className={styles.header}>
         <Logo />
         {isAuthenticated && user && (
-          <div className={styles.userHeader}>
+          <div className={styles.userHeader} onClick={() => setIsUserModalOpen(!isUserModalOpen)}>
             <Image
               src="/img/Profile.svg"
               alt="profile"
@@ -248,7 +250,25 @@ export default function WorkoutPage() {
             <span className={styles.userHeaderName}>
               {getUserName() || user.email || 'Пользователь'}
             </span>
+            <span className={styles.header__arrow}>
+              <svg
+                width="13"
+                height="8"
+                viewBox="0 0 13 8"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12.0624 0.707154L6.38477 6.38477L0.707152 0.707154"
+                  stroke="black"
+                  strokeWidth="2"
+                />
+              </svg>
+            </span>
           </div>
+        )}
+        {isUserModalOpen && (
+          <ModalUser onClose={() => setIsUserModalOpen(false)} />
         )}
       </header>
 

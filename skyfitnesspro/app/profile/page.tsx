@@ -9,6 +9,7 @@ import { Course, CourseProgress } from '@/lib/types';
 import { useAuth } from '@/hooks/useAuth';
 import { getErrorMessage } from '@/lib/utils';
 import Logo from '@/components/Logo/Logo';
+import ModalUser from '@/components/ModalUser/ModalUser';
 import styles from './profile.module.css';
 
 // Маппинг изображений для курсов
@@ -46,6 +47,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false); // Начинаем с false, чтобы профиль показывался сразу
   const [error, setError] = useState<string | null>(null);
   const [removingCourseId, setRemovingCourseId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const loadingRef = useRef(false);
 
   // Получаем имя пользователя из email
@@ -351,7 +353,7 @@ export default function ProfilePage() {
       {/* Header */}
       <header className={styles.header}>
         <Logo />
-        <div className={styles.userHeader}>
+        <div className={styles.userHeader} onClick={() => setIsModalOpen(!isModalOpen)}>
           <Image
             src="/img/Profile.svg"
             alt="profile"
@@ -365,7 +367,25 @@ export default function ProfilePage() {
                 ? (getUserName() || getUserLogin()) 
                 : 'Пользователь'}
           </span>
+          <span className={styles.header__arrow}>
+            <svg
+              width="13"
+              height="8"
+              viewBox="0 0 13 8"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.0624 0.707154L6.38477 6.38477L0.707152 0.707154"
+                stroke="black"
+                strokeWidth="2"
+              />
+            </svg>
+          </span>
         </div>
+        {isModalOpen && (
+          <ModalUser onClose={() => setIsModalOpen(false)} />
+        )}
       </header>
 
       <div className={styles.center__container}>

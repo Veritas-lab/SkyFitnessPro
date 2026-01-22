@@ -60,7 +60,7 @@ export default function Signup() {
             alt="SkyFitnessPro"
             width={220}
             height={35}
-            priority
+            loading="eager"
           />
         </div>
       </Link>
