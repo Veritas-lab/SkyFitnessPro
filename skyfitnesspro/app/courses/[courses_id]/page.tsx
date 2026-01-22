@@ -14,6 +14,7 @@ import { AxiosError } from 'axios';
 import { useModal } from '@/context/ModalContext';
 import { useCourse } from '@/hooks/useCourse';
 import ModalWorkouts from '@/components/ModalWorkouts/ModalWorkouts';
+import ModalUser from '@/components/ModalUser/ModalUser';
 
 export default function Course() {
   const user = useAppSelector((state) => state.auth.user);
@@ -22,6 +23,7 @@ export default function Course() {
   const [course, setCourses] = useState<Course | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isWorkoutsModalOpen, setIsWorkoutsModalOpen] = useState(false);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const { openLogin } = useModal();
   const courseID = params.courses_id;
   const { toggleAddRemove, isAdd } = useCourse(course);
@@ -134,7 +136,7 @@ export default function Course() {
           </button>
         )}
         {user && (
-          <div className={styles.userInfo}>
+          <div className={styles.userInfo} onClick={() => setIsUserModalOpen(!isUserModalOpen)}>
             <Image
               src="/img/Profile.svg"
               alt="profile"
@@ -142,7 +144,25 @@ export default function Course() {
               height={50}
             />
             <p className={styles.userText}>{user}</p>
+            <span className={styles.header__arrow}>
+              <svg
+                width="13"
+                height="8"
+                viewBox="0 0 13 8"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12.0624 0.707154L6.38477 6.38477L0.707152 0.707154"
+                  stroke="black"
+                  strokeWidth="2"
+                />
+              </svg>
+            </span>
           </div>
+        )}
+        {isUserModalOpen && (
+          <ModalUser onClose={() => setIsUserModalOpen(false)} />
         )}
       </div>
 
