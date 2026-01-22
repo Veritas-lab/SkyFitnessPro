@@ -14,12 +14,17 @@
 .modal {
   position: relative;
   background: white;
-  border-radius: 16px;
-  padding: 24px;
-  max-width: 500px;
-  width: 90%;
-  max-height: 80vh;
+  width: 426px;
+  height: 595.5px;
+  border-radius: 30px;
+  padding: 40px;
+  gap: 48px;
+  opacity: 1;
   overflow-y: auto;
+  box-shadow: 0px 4px 67px -12px #00000021;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .closeButton {
@@ -45,9 +50,13 @@
 }
 
 .title {
-  font-size: 24px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 32px;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin: 0;
+  margin-bottom: 0;
+  color: #000000;
+  line-height: 110%;
 }
 
 .error {
@@ -58,73 +67,74 @@
 .progressList {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 48px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .progressItem {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
-.progressItem label {
-  font-weight: 500;
-  font-size: 16px;
+.question {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 110%;
   color: #000000;
 }
 
-.targetQuantity {
+.input {
+  padding: 12px 16px;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 18px;
   font-weight: 400;
-  color: #666666;
-  font-size: 14px;
+  color: #000000;
+  background: #FFFFFF;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
 }
 
-.input {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 16px;
+.input:focus {
+  outline: none;
+  border-color: #BCEC30;
+}
+
+.input::placeholder {
+  color: #999999;
 }
 
 .buttons {
   display: flex;
-  gap: 12px;
+  justify-content: center;
+  margin-top: 0;
 }
 
 .saveButton {
-  flex: 1;
-  padding: 12px 24px;
-  background: #bcec30;
+  width: 100%;
+  padding: 16px 26px;
+  background: #BCEC30;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 500;
+  border-radius: 46px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 110%;
+  color: #000000;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background-color 0.2s;
 }
 
 .saveButton:hover:not(:disabled) {
-  background: #a8d228;
+  background: #A8D028;
 }
 
 .saveButton:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
-}
-
-.cancelButton {
-  flex: 1;
-  padding: 12px 24px;
-  background: #f5f5f5;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.cancelButton:hover {
-  background: #e0e0e0;
 }

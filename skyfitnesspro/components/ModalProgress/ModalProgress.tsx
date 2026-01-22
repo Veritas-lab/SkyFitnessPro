@@ -41,11 +41,43 @@ export default function ModalProgress({
     setError(null);
 
     try {
-      await workoutsApi.saveProgress(courseId, workoutId, progress);
-      onSaveProgress(progress);
+      // Валидация: проверяем, что progressData - это массив чисел
+      if (!Array.isArray(progress) || progress.length === 0) {
+        throw new Error('Прогресс должен быть массивом чисел');
+      }
+
+      // Проверяем, что все значения - числа
+      const validProgress = progress.map((value) => {
+        const num = Number(value);
+        return isNaN(num) || num < 0 ? 0 : Math.round(num);
+      });
+
+      // Логируем для отладки
+      if (process.env.NODE_ENV === 'development') {
+        console.log('💾 Сохранение прогресса:', {
+          courseId,
+          workoutId,
+          progressData: validProgress,
+          exercisesCount: exercises.length
+        });
+      }
+
+      const response = await workoutsApi.saveProgress(courseId, workoutId, validProgress);
+      
+      // Логируем успешный ответ
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Прогресс успешно сохранен:', response.data);
+      }
+
+      // Вызываем callback с обновленным прогрессом
+      onSaveProgress(validProgress);
+      
+      // Закрываем модальное окно
       onClose();
     } catch (err) {
-      setError(getErrorMessage(err));
+      const errorMessage = getErrorMessage(err);
+      console.error('❌ Ошибка при сохранении прогресса:', err);
+      setError(errorMessage || 'Не удалось сохранить прогресс. Попробуйте еще раз.');
     } finally {
       setIsSaving(false);
     }
@@ -57,28 +89,21 @@ export default function ModalProgress({
         <button className={styles.closeButton} onClick={onClose}>
           ×
         </button>
-        <h2 className={styles.title}>Заполните свой прогресс</h2>
+        <h2 className={styles.title}>Мой прогресс</h2>
         {error && <p className={styles.error}>{error}</p>}
         <div className={styles.progressList}>
           {progress.map((value, index) => {
             const exercise = exercises[index];
             const exerciseName = exercise?.name || `Упражнение ${index + 1}`;
-            const targetQuantity = exercise?.quantity || 0;
             
             return (
               <div key={index} className={styles.progressItem}>
-                <label>
-                  {exerciseName}
-                  {targetQuantity > 0 && (
-                    <span className={styles.targetQuantity}>
-                      {' '}(цель: {targetQuantity})
-                    </span>
-                  )}
+                <label className={styles.question}>
+                  Сколько раз вы сделали {exerciseName.toLowerCase()}?
                 </label>
                 <input
                   type="number"
                   min="0"
-                  max={targetQuantity > 0 ? targetQuantity : undefined}
                   value={value}
                   onChange={(e) => handleChange(index, parseInt(e.target.value) || 0)}
                   className={styles.input}
@@ -95,9 +120,6 @@ export default function ModalProgress({
             className={styles.saveButton}
           >
             {isSaving ? 'Сохранение...' : 'Сохранить'}
-          </button>
-          <button onClick={onClose} className={styles.cancelButton}>
-            Отмена
           </button>
         </div>
       </div>

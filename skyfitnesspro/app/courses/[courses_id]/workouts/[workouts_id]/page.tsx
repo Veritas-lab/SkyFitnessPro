@@ -211,8 +211,26 @@ export default function WorkoutPage() {
     setIsModalOpen(!isModalOpen);
   };
 
-  const handleSaveProgress = (updatedProgress: number[]) => {
+  const handleSaveProgress = async (updatedProgress: number[]) => {
+    // Обновляем локальное состояние
     setCurrentProgress(updatedProgress);
+    
+    // Перезагружаем прогресс с сервера для синхронизации
+    if (isAuthenticated && courseId && workoutId) {
+      try {
+        const progressResponse = await progressApi.getWorkoutProgress(
+          courseId,
+          workoutId
+        );
+        const progress = progressResponse.data;
+        if (progress.progressData && Array.isArray(progress.progressData) && progress.progressData.length > 0) {
+          setCurrentProgress(progress.progressData);
+        }
+      } catch (progressError) {
+        // Если не удалось загрузить прогресс, используем обновленные данные
+        console.warn('Не удалось перезагрузить прогресс после сохранения:', progressError);
+      }
+    }
   };
 
   return (
@@ -256,7 +274,7 @@ export default function WorkoutPage() {
 
       <div className={styles.exercisesBlock}>
         <h2 className={styles.exercisesBlockTitle}>
-          Упражнения тренировки {workoutData.name || '2'}
+          Упражнения тренировки {workoutData.name || '2'} ({workoutData.exercises.length})
         </h2>
         <ul className={styles.exercisesBlockUl}>
           {workoutData.exercises.map((exercise, index: number) => {

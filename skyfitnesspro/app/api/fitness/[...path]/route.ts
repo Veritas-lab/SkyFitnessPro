@@ -128,6 +128,10 @@ async function handleRequest(
     }
 
     // НЕ добавляем Content-Type, так как API не поддерживает этот заголовок
+    // Удаляем Content-Type, если он был установлен
+    if (headers['Content-Type']) {
+      delete headers['Content-Type'];
+    }
 
     // Для POST запросов логируем детали для отладки
     if (method === 'POST' && path === 'users/me/courses') {
@@ -137,6 +141,17 @@ async function handleRequest(
         hasAuth: !!authHeader,
         method,
         headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }
+      });
+    }
+
+    // Для PATCH запросов на сохранение прогресса логируем детали для отладки
+    if (method === 'PATCH' && path.includes('workouts') && !path.includes('reset')) {
+      console.log('📤 Отправка запроса на сохранение прогресса:', {
+        url,
+        body,
+        hasAuth: !!authHeader,
+        method,
+        path
       });
     }
 
