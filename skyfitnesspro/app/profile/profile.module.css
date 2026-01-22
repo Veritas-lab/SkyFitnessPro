@@ -1,0 +1,416 @@
+.profilePage {
+  min-height: 100vh;
+  background-color: #FAFAFA;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 50px 140px 0;
+  margin-bottom: 60px;
+  @media screen and (max-width: 768px) {
+    padding: 30px 20px 0;
+    margin-bottom: 40px;
+  }
+}
+
+.userHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.userHeaderName {
+  font-weight: 400;
+  font-size: 18px;
+  color: #000;
+  line-height: 110%;
+}
+
+.center__container {
+  max-width: 1160px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 140px 60px;
+  background-color: #FAFAFA;
+  @media screen and (max-width: 495px) {
+    width: 100%;
+    padding: 0px 16px 40px;
+  }
+}
+
+.course__descTitle {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+  font-style: normal;
+  font-size: 40px;
+  line-height: 110.00000000000001%;
+  letter-spacing: 0px;
+  font-variant-numeric: lining-nums proportional-nums;
+  margin-bottom: 40px;
+  color: #000000;
+  opacity: 1;
+  @media screen and (max-width: 495px) {
+    font-weight: 500;
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+}
+
+.userContainer {
+  width: 1160px;
+  height: 257px;
+  border-radius: 30px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 10px;
+  padding: 30px;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  margin-bottom: 60px;
+  margin-right: 140px;
+  background-color: #ffffff;
+  opacity: 1;
+  box-sizing: border-box;
+  @media screen and (max-width: 1200px) {
+    width: 100%;
+    max-width: 1160px;
+    height: auto;
+    min-height: 257px;
+    margin-right: 0;
+  }
+  @media screen and (max-width: 495px) {
+    justify-content: center;
+    flex-direction: column;
+    gap: 30px;
+    margin-bottom: 24px;
+    height: auto;
+    margin-right: 0;
+  }
+}
+
+.userImg {
+  position: relative;
+  width: 197px;
+  height: 197px;
+  flex-shrink: 0;
+  @media screen and (max-width: 495px) {
+    width: 141px;
+    height: 141px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.userNameContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 30px;
+
+  @media screen and (max-width: 495px) {
+    gap: 20px;
+  }
+}
+
+.userNameMain {
+  font-weight: 500;
+  font-size: 32px;
+  color: #000;
+  line-height: 110%;
+  margin: 0;
+  @media screen and (max-width: 495px) {
+    font-size: 24px;
+  }
+}
+
+.userName {
+  font-weight: 400;
+  font-size: 18px;
+  color: #000;
+  line-height: 110%;
+  margin: 0;
+  @media screen and (max-width: 495px) {
+    font-size: 16px;
+  }
+}
+
+.modal__btnLogOut {
+  display: block;
+  padding: 16px 68.5px;
+  border-radius: 46px;
+  background: transparent;
+  border: 1px solid #000000;
+  font-size: 18px;
+  font-weight: 400;
+  text-align: center;
+  color: #000000;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  align-self: flex-end;
+  @media screen and (max-width: 495px) {
+    padding: 8px 16px;
+    width: 100%;
+    align-self: stretch;
+  }
+}
+
+.modal__btnLogOut:hover {
+  background: #f7f7f7;
+}
+
+.modal__btnLogOut:active {
+  background: #e9eced;
+}
+
+.modal__btnLogOut:disabled {
+  background: #ffffff;
+  color: #999999;
+  border: 1px solid #999999;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+}
+
+/* Сетка курсов */
+.coursesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 40px;
+  margin-bottom: 60px;
+  @media screen and (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+}
+
+/* Карточка курса */
+.courseCard {
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+
+/* Обертка изображения */
+.courseImageWrapper {
+  position: relative;
+  width: 100%;
+  height: 325px;
+  overflow: hidden;
+}
+
+.courseImageLink {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.courseImage {
+  object-fit: cover;
+}
+
+/* Кнопка удаления курса */
+.removeCourseButton {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  z-index: 10;
+}
+
+.removeCourseButton:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.removeCourseButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Информация о курсе */
+.courseInfo {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.courseTitle {
+  font-weight: 500;
+  font-size: 24px;
+  color: #000;
+  margin: 0;
+  text-decoration: none;
+  line-height: 1.2;
+}
+
+.courseTitle:hover {
+  text-decoration: underline;
+}
+
+/* Мета-информация */
+.courseMeta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.courseMetaItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  color: #000;
+}
+
+/* Сложность */
+.courseComplexity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  color: #000;
+}
+
+/* Секция прогресса */
+.progressSection {
+  margin-top: 8px;
+}
+
+.progressText {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000;
+  margin-bottom: 8px;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: #60a5fa;
+  transition: width 0.3s ease;
+}
+
+/* Кнопка действия */
+.courseAction {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.actionButton {
+  display: block;
+  width: 100%;
+  padding: 12px 24px;
+  border-radius: 30px;
+  background-color: #bcec30;
+  color: #000;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.actionButton:hover {
+  background-color: #a8d228;
+}
+
+.actionButton:active {
+  background-color: #94b820;
+}
+
+/* Пустое состояние */
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  border-radius: 30px;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  background-color: #ffffff;
+}
+
+.emptyStateText {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.emptyStateLink {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 30px;
+  background-color: #bcec30;
+  color: #000;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.emptyStateLink:hover {
+  background-color: #a8d228;
+}
+
+/* Загрузка и ошибка */
+.loading,
+.error {
+  text-align: center;
+  padding: 60px 20px;
+  border-radius: 30px;
+  box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
+  background-color: #ffffff;
+}
+
+.error {
+  color: #ef4444;
+}
+
+.error button {
+  margin-top: 16px;
+  padding: 12px 24px;
+  border-radius: 30px;
+  background-color: #bcec30;
+  color: #000;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.error button:hover {
+  background-color: #a8d228;
+}
