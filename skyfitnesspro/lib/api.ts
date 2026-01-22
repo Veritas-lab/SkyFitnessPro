@@ -47,7 +47,35 @@ export const authApi = {
 
 // Users
 export const usersApi = {
-  getMe: () => api.get<User>('/users/me'),
+  getMe: async () => {
+    const response = await api.get<any>('/users/me');
+    
+    // Логируем ответ для отладки (только в development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📥 Ответ от /users/me:', response.data);
+    }
+    
+    // Обрабатываем разные форматы ответа от API
+    let userData: User;
+    
+    // Если ответ обернут в { user: ... }, извлекаем user
+    if (response.data && typeof response.data === 'object' && 'user' in response.data) {
+      userData = response.data.user;
+    }
+    // Если данные приходят напрямую с email и selectedCourses
+    else if (response.data && typeof response.data === 'object' && ('email' in response.data || 'selectedCourses' in response.data)) {
+      userData = {
+        email: response.data.email || '',
+        selectedCourses: response.data.selectedCourses || []
+      };
+    }
+    // Если данные уже в правильном формате
+    else {
+      userData = response.data as User;
+    }
+    
+    return { ...response, data: userData };
+  },
   addCourse: (courseId: string) => {
     // Убеждаемся, что отправляем правильный формат данных
     return api.post('/users/me/courses', { courseId });

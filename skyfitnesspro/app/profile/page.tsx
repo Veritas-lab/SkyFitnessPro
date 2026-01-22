@@ -50,17 +50,31 @@ export default function ProfilePage() {
 
   // Получаем имя пользователя из email
   const getUserName = () => {
-    if (!user?.email) return 'Пользователь';
+    if (!user?.email) return '';
     const emailParts = user.email.split('@');
     const namePart = emailParts[0];
+    
+    // Если в email есть точка, берем первую часть до точки
+    // Например: sergey.petrov96 -> Сергей
+    const nameBeforeDot = namePart.split('.')[0];
+    
     // Преобразуем первую букву в заглавную
-    return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    const capitalizedName = nameBeforeDot.charAt(0).toUpperCase() + nameBeforeDot.slice(1);
+    
+    // Если имя слишком короткое или содержит цифры, используем полную первую часть
+    if (capitalizedName.length < 2 || /\d/.test(capitalizedName)) {
+      return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    }
+    
+    return capitalizedName;
   };
 
   // Получаем логин (email)
   const getUserLogin = () => {
+    // Возвращаем полный email как логин, если он доступен
     return user?.email || '';
   };
+
 
   const loadUserCourses = useCallback(async () => {
     if (loadingRef.current) return;
@@ -113,6 +127,16 @@ export default function ProfilePage() {
       loadingRef.current = false;
     }
   }, [user?.selectedCourses]);
+
+  // Загружаем данные пользователя при монтировании, если их нет
+  useEffect(() => {
+    if (isAuthenticated && !authLoading && refreshUser) {
+      // Если данных пользователя нет, загружаем их
+      if (!user || !user.email) {
+        refreshUser();
+      }
+    }
+  }, [isAuthenticated, authLoading, user, refreshUser]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -203,27 +227,30 @@ export default function ProfilePage() {
     if (!progress) {
       return { completed: 0, total: 0, percentage: 0, isCompleted: false };
     }
+    // Проверяем, что workoutsProgress существует и является массивом
+    if (!progress.workoutsProgress || !Array.isArray(progress.workoutsProgress)) {
+      return { completed: 0, total: 0, percentage: 0, isCompleted: progress.courseCompleted || false };
+    }
     const completed = progress.workoutsProgress.filter((w) => w.workoutCompleted).length;
     const total = progress.workoutsProgress.length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-    return { completed, total, percentage, isCompleted: progress.courseCompleted };
+    return { completed, total, percentage, isCompleted: progress.courseCompleted || false };
   };
 
   const handleLogout = () => {
     logout();
   };
 
-  if (authLoading) {
-    return (
-      <div className={styles.center__container}>
-        <div className={styles.loading}>
-          <p>Загрузка профиля...</p>
-        </div>
-      </div>
-    );
-  }
+  // Если пользователь не авторизован после загрузки, перенаправляем
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/');
+    }
+  }, [authLoading, isAuthenticated, router]);
 
-  if (!isAuthenticated) {
+
+  // Если пользователь не авторизован, не показываем страницу
+  if (!authLoading && !isAuthenticated) {
     return null;
   }
 
@@ -239,7 +266,13 @@ export default function ProfilePage() {
             width={50}
             height={50}
           />
-          <span className={styles.userHeaderName}>{getUserName()}</span>
+          <span className={styles.userHeaderName}>
+            {authLoading 
+              ? 'Загрузка...' 
+              : user?.email 
+                ? (getUserName() || getUserLogin()) 
+                : 'Пользователь'}
+          </span>
         </div>
       </header>
 
@@ -258,8 +291,10 @@ export default function ProfilePage() {
           </div>
           <div className={styles.userInfo}>
             <div className={styles.userNameContainer}>
-              <p className={styles.userNameMain}>{getUserName()}</p>
-              <p className={styles.userName}>Логин: {getUserLogin()}</p>
+              <p className={styles.userNameMain}>{getUserName() || getUserLogin() || 'Пользователь'}</p>
+              <p className={styles.userName}>
+                Логин: {user?.email || (authLoading ? 'Загрузка...' : '')}
+              </p>
             </div>
             <button className={styles.modal__btnLogOut} onClick={handleLogout}>
               Выйти
