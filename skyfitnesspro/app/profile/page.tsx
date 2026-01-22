@@ -150,9 +150,32 @@ export default function ProfilePage() {
       } else {
         setLoading(false);
         setCourses([]);
+        setProgressMap({});
       }
     }
   }, [isAuthenticated, authLoading, router, loadUserCourses, user?.selectedCourses]);
+
+  // Обновляем курсы при изменении selectedCourses пользователя
+  // Используем useRef для отслеживания предыдущего значения, чтобы избежать лишних перезагрузок
+  const prevSelectedCoursesRef = useRef<string>('');
+  
+  useEffect(() => {
+    if (isAuthenticated && !authLoading && user) {
+      const userCourseIds = (user.selectedCourses || []).sort().join(',');
+      
+      // Если список курсов изменился, перезагружаем их
+      if (prevSelectedCoursesRef.current !== userCourseIds) {
+        prevSelectedCoursesRef.current = userCourseIds;
+        
+        if (user.selectedCourses && user.selectedCourses.length > 0) {
+          loadUserCourses();
+        } else {
+          setCourses([]);
+          setProgressMap({});
+        }
+      }
+    }
+  }, [user, isAuthenticated, authLoading, loadUserCourses]);
 
   const handleRemoveCourse = async (courseId: string) => {
     if (!confirm('Вы уверены, что хотите удалить этот курс?')) return;
@@ -160,14 +183,31 @@ export default function ProfilePage() {
     try {
       setRemovingCourseId(courseId);
       await usersApi.removeCourse(courseId);
-      // Обновляем данные пользователя
+      
+      // Обновляем данные пользователя, чтобы получить актуальный список selectedCourses
       if (refreshUser) {
         await refreshUser();
       }
-      // Перезагружаем курсы
-      await loadUserCourses();
+      
+      // Удаляем курс из локального состояния сразу, чтобы UI обновился быстрее
+      setCourses((prevCourses) => prevCourses.filter((course) => course._id !== courseId));
+      setProgressMap((prevProgress) => {
+        const newProgress = { ...prevProgress };
+        delete newProgress[courseId];
+        return newProgress;
+      });
+      
+      // Перезагружаем курсы, чтобы убедиться, что данные синхронизированы
+      // Это также обновит список, если пользователь уже обновился через refreshUser
+      if (user?.selectedCourses && user.selectedCourses.length > 0) {
+        await loadUserCourses();
+      }
     } catch (err) {
       alert(getErrorMessage(err));
+      // В случае ошибки перезагружаем курсы, чтобы восстановить состояние
+      if (user?.selectedCourses && user.selectedCourses.length > 0) {
+        await loadUserCourses();
+      }
     } finally {
       setRemovingCourseId(null);
     }
