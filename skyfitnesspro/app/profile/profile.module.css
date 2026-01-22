@@ -1,6 +1,7 @@
 .profilePage {
   min-height: 100vh;
   background-color: #FAFAFA;
+  position: relative;
 }
 
 /* Header */
@@ -30,14 +31,32 @@
 }
 
 .center__container {
-  max-width: 1160px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 140px 60px;
+  width: 1160px;
+  height: 1134px;
+  position: absolute;
+  top: 145px;
+  left: 140px;
+  opacity: 1;
   background-color: #FAFAFA;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+  box-sizing: border-box;
+  @media screen and (max-width: 1400px) {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    max-width: 1160px;
+    height: auto;
+    margin: 145px auto 0;
+    padding: 0 140px 60px;
+  }
   @media screen and (max-width: 495px) {
     width: 100%;
     padding: 0px 16px 40px;
+    margin-top: 40px;
+    gap: 40px;
   }
 }
 
@@ -49,13 +68,13 @@
   line-height: 110.00000000000001%;
   letter-spacing: 0px;
   font-variant-numeric: lining-nums proportional-nums;
-  margin-bottom: 40px;
+  margin-bottom: 0;
   color: #000000;
   opacity: 1;
   @media screen and (max-width: 495px) {
     font-weight: 500;
     font-size: 24px;
-    margin-bottom: 24px;
+    margin-bottom: 0;
   }
 }
 
@@ -69,8 +88,7 @@
   gap: 10px;
   padding: 30px;
   box-shadow: 0px 4px 67px -12px rgba(0, 0, 0, 0.13);
-  margin-bottom: 60px;
-  margin-right: 140px;
+  margin-bottom: 0;
   background-color: #ffffff;
   opacity: 1;
   box-sizing: border-box;
@@ -79,15 +97,13 @@
     max-width: 1160px;
     height: auto;
     min-height: 257px;
-    margin-right: 0;
   }
   @media screen and (max-width: 495px) {
     justify-content: center;
     flex-direction: column;
     gap: 30px;
-    margin-bottom: 24px;
+    margin-bottom: 0;
     height: auto;
-    margin-right: 0;
   }
 }
 
@@ -184,11 +200,11 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 40px;
-  margin-bottom: 60px;
+  margin-bottom: 0;
   @media screen and (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 24px;
-    margin-bottom: 40px;
+    margin-bottom: 0;
   }
 }
 
@@ -229,8 +245,8 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: #ffffff;
+  background-color: #ffffff;
+  color: #000000;
   border: none;
   cursor: pointer;
   display: flex;
@@ -238,12 +254,18 @@
   justify-content: center;
   font-size: 20px;
   font-weight: 500;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, opacity 0.2s;
   z-index: 10;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .removeCourseButton:hover {
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: #f5f5f5;
+  opacity: 0.9;
+}
+
+.removeCourseButton:active {
+  background-color: #e0e0e0;
 }
 
 .removeCourseButton:disabled {

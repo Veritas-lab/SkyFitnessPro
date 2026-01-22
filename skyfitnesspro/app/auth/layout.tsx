@@ -42,7 +42,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
   useEffect(() => {
     if (isAuth) {
-      router.push('/main');
+      router.push('/profile');
     }
   }, [isAuth, router]);
 

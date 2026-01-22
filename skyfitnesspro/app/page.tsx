@@ -95,7 +95,11 @@ export default function Home() {
   }, [courses]);
 
   const handleAddCourse = async (courseId: string) => {
-    if (!isAuthenticated) {
+    // Проверяем наличие токена в localStorage напрямую
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    
+    // Если нет токена, открываем модальное окно логина
+    if (!token) {
       openLogin();
       return;
     }
@@ -103,19 +107,23 @@ export default function Home() {
     try {
       setAddingCourseId(courseId);
       await usersApi.addCourse(courseId);
-      // Обновляем данные пользователя без перезагрузки страницы
+      // Обновляем данные пользователя
       if (refreshUser) {
         await refreshUser();
       }
+      // Показываем уведомление об успешном добавлении
+      // Пользователь может продолжить выбирать курсы или перейти в профиль
     } catch (err) {
       const errorMessage = getErrorMessage(err);
-      // Если ошибка 401 (неавторизован), очищаем токен
+      // Если ошибка 401 (неавторизован), очищаем токен и открываем модальное окно
       if (errorMessage.includes('401') || errorMessage.includes('неавторизован') || errorMessage.includes('Unauthorized')) {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('token');
         }
+        openLogin();
+      } else {
+        alert(errorMessage);
       }
-      alert(errorMessage);
     } finally {
       setAddingCourseId(null);
     }
@@ -199,12 +207,21 @@ export default function Home() {
       <div className={styles.header}>
         <Logo />
         <HeaderText />
-        <button 
-          className={styles.loginButton}
-          onClick={openLogin}
-        >
-          Войти
-        </button>
+        {isAuthenticated ? (
+          <Link 
+            href="/profile"
+            className={styles.loginButton}
+          >
+            Профиль
+          </Link>
+        ) : (
+          <button 
+            className={styles.loginButton}
+            onClick={openLogin}
+          >
+            Войти
+          </button>
+        )}
       </div>
 
       {/* Заголовок и баннер */}

@@ -43,7 +43,7 @@ export default function ProfilePage() {
   const { user, isAuthenticated, isLoading: authLoading, logout, refreshUser } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [progressMap, setProgressMap] = useState<Record<string, CourseProgress>>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Начинаем с false, чтобы профиль показывался сразу
   const [error, setError] = useState<string | null>(null);
   const [removingCourseId, setRemovingCourseId] = useState<string | null>(null);
   const loadingRef = useRef(false);
@@ -76,22 +76,29 @@ export default function ProfilePage() {
       setLoading(true);
       setError(null);
       
-      // Загружаем данные курсов
+      // Загружаем данные курсов и прогресс параллельно
       const coursePromises = user.selectedCourses.map((courseId) =>
         coursesApi.getById(courseId)
       );
-      const coursesRes = await Promise.all(coursePromises);
-      const coursesData = coursesRes.map((res) => res.data);
-      setCourses(coursesData);
-
-      // Загружаем прогресс для каждого курса
+      
       const progressPromises = user.selectedCourses.map((courseId) =>
         progressApi
           .getCourseProgress(courseId)
           .then((res) => ({ courseId, progress: res.data }))
           .catch(() => null)
       );
-      const progressResults = await Promise.all(progressPromises);
+
+      // Загружаем курсы и прогресс параллельно
+      const [coursesRes, progressResults] = await Promise.all([
+        Promise.all(coursePromises),
+        Promise.all(progressPromises)
+      ]);
+
+      // Сразу показываем курсы
+      const coursesData = coursesRes.map((res) => res.data);
+      setCourses(coursesData);
+
+      // Обновляем прогресс
       const progressMapData: Record<string, CourseProgress> = {};
       progressResults.forEach((result) => {
         if (result) {
@@ -113,9 +120,15 @@ export default function ProfilePage() {
         router.push('/');
         return;
       }
-      loadUserCourses();
+      // Загружаем курсы только если есть выбранные курсы
+      if (user?.selectedCourses && user.selectedCourses.length > 0) {
+        loadUserCourses();
+      } else {
+        setLoading(false);
+        setCourses([]);
+      }
     }
-  }, [isAuthenticated, authLoading, router, loadUserCourses]);
+  }, [isAuthenticated, authLoading, router, loadUserCourses, user?.selectedCourses]);
 
   const handleRemoveCourse = async (courseId: string) => {
     if (!confirm('Вы уверены, что хотите удалить этот курс?')) return;
@@ -186,7 +199,10 @@ export default function ProfilePage() {
 
   const getCourseProgress = (courseId: string) => {
     const progress = progressMap[courseId];
-    if (!progress) return null;
+    // Если прогресс не загружен, возвращаем начальные значения
+    if (!progress) {
+      return { completed: 0, total: 0, percentage: 0, isCompleted: false };
+    }
     const completed = progress.workoutsProgress.filter((w) => w.workoutCompleted).length;
     const total = progress.workoutsProgress.length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -197,7 +213,7 @@ export default function ProfilePage() {
     logout();
   };
 
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <div className={styles.center__container}>
         <div className={styles.loading}>
@@ -254,7 +270,11 @@ export default function ProfilePage() {
         {/* Мои курсы */}
         <h1 className={styles.course__descTitle}>Мои курсы</h1>
         
-        {error ? (
+        {loading && courses.length === 0 ? (
+          <div className={styles.loading}>
+            <p>Загрузка курсов...</p>
+          </div>
+        ) : error ? (
           <div className={styles.error}>
             <p>Ошибка: {error}</p>
             <button onClick={loadUserCourses}>Попробовать снова</button>
@@ -339,30 +359,28 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Прогресс */}
-                    {courseProgress && (
-                      <div className={styles.progressSection}>
-                        <p className={styles.progressText}>
-                          Прогресс {courseProgress.percentage}%
-                        </p>
-                        <div className={styles.progressBar}>
-                          <div
-                            className={styles.progressFill}
-                            style={{ width: `${courseProgress.percentage}%` }}
-                          />
-                        </div>
+                    <div className={styles.progressSection}>
+                      <p className={styles.progressText}>
+                        Прогресс {courseProgress.percentage}%
+                      </p>
+                      <div className={styles.progressBar}>
+                        <div
+                          className={styles.progressFill}
+                          style={{ width: `${courseProgress.percentage}%` }}
+                        />
                       </div>
-                    )}
+                    </div>
 
                     {/* Кнопка действия */}
                     <div className={styles.courseAction}>
-                      {courseProgress?.isCompleted ? (
+                      {courseProgress.isCompleted ? (
                         <button
                           className={styles.actionButton}
                           onClick={() => handleResetProgress(course._id)}
                         >
                           Начать заново
                         </button>
-                      ) : courseProgress && courseProgress.completed > 0 ? (
+                      ) : courseProgress.completed > 0 ? (
                         <Link
                           href={`/courses/${course._id}`}
                           className={styles.actionButton}
