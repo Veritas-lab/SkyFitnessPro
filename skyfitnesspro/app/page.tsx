@@ -113,16 +113,70 @@ export default function Home() {
       }
       // Показываем уведомление об успешном добавлении
       // Пользователь может продолжить выбирать курсы или перейти в профиль
-    } catch (err) {
+    } catch (err: unknown) {
       const errorMessage = getErrorMessage(err);
+      console.error('Ошибка при добавлении курса:', err);
+      
+      // Проверяем статус ошибки, если это axios error
+      const axiosError = err as { response?: { status?: number; data?: { message?: string; details?: unknown } } };
+      const status = axiosError?.response?.status;
+      const errorData = axiosError?.response?.data;
+      
       // Если ошибка 401 (неавторизован), очищаем токен и открываем модальное окно
-      if (errorMessage.includes('401') || errorMessage.includes('неавторизован') || errorMessage.includes('Unauthorized')) {
+      if (status === 401 || errorMessage.includes('401') || errorMessage.includes('неавторизован') || errorMessage.includes('Unauthorized')) {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('token');
         }
         openLogin();
+      } else if (status === 400) {
+        // Ошибка 400 - неверный формат данных
+        console.error('Детали ошибки 400:', {
+          error: err,
+          responseData: errorData,
+          courseId
+        });
+        
+        const serverMessage = errorData?.message || errorMessage;
+        const details = errorData?.details;
+        
+        let alertMessage = `Неверный формат запроса: ${serverMessage}`;
+        if (details) {
+          console.log('Детали ошибки от сервера:', details);
+          alertMessage += '\n\nПроверьте консоль браузера для дополнительной информации.';
+        }
+        
+        alert(alertMessage);
+      } else if (status === 500) {
+        // Ошибка 500 - проблема на сервере
+        console.error('Детали ошибки 500:', {
+          error: err,
+          responseData: errorData,
+          courseId
+        });
+        
+        // Показываем более информативное сообщение
+        const serverMessage = errorData?.message || errorMessage;
+        const details = errorData?.details;
+        
+        // Проверяем, не является ли это сообщением о том, что курс уже добавлен
+        if (serverMessage.includes('уже был добавлен') || serverMessage.includes('уже добавлен') || serverMessage.includes('already added')) {
+          // Обновляем данные пользователя, так как курс уже добавлен
+          if (refreshUser) {
+            await refreshUser();
+          }
+          alert('Этот курс уже добавлен в ваш профиль!');
+          return;
+        }
+        
+        let alertMessage = `Ошибка сервера при добавлении курса: ${serverMessage}`;
+        if (details) {
+          console.log('Детали ошибки от сервера:', details);
+          alertMessage += '\n\nПроверьте консоль браузера для дополнительной информации.';
+        }
+        
+        alert(alertMessage);
       } else {
-        alert(errorMessage);
+        alert(errorMessage || 'Произошла ошибка при добавлении курса');
       }
     } finally {
       setAddingCourseId(null);

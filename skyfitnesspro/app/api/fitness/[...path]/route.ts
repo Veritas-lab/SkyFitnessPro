@@ -129,24 +129,42 @@ async function handleRequest(
 
     // НЕ добавляем Content-Type, так как API не поддерживает этот заголовок
 
-    const response = await fetch(url, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    // Для POST запросов логируем детали для отладки
+    if (method === 'POST' && path === 'users/me/courses') {
+      console.log('📤 Отправка запроса на добавление курса:', {
+        url,
+        body,
+        hasAuth: !!authHeader,
+        method,
+        headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }
+      });
+    }
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } catch (fetchError) {
+      console.error('❌ Ошибка при выполнении fetch запроса:', fetchError);
+      throw fetchError;
+    }
 
     let data;
     const contentType = response.headers.get('content-type');
+    let responseText = '';
     
     try {
+      responseText = await response.text();
       if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
+        data = JSON.parse(responseText);
       } else {
-        const text = await response.text();
         try {
-          data = JSON.parse(text);
+          data = JSON.parse(responseText);
         } catch {
-          data = { message: text || 'Ошибка сервера' };
+          data = { message: responseText || 'Ошибка сервера' };
         }
       }
     } catch (parseError) {
@@ -154,8 +172,37 @@ async function handleRequest(
       data = { 
         message: response.status === 400 
           ? 'Неверный формат запроса. Проверьте отправляемые данные.' 
-          : 'Ошибка при обработке ответа сервера' 
+          : responseText || 'Ошибка при обработке ответа сервера' 
       };
+    }
+
+    // Если статус 400, логируем детали для отладки
+    if (response.status === 400) {
+      if (method === 'POST' && path === 'users/me/courses') {
+        console.error('❌ Ошибка 400 при добавлении курса:', {
+          externalUrl: url,
+          requestBody: body,
+          requestHeaders: { ...headers, Authorization: 'Bearer ***' },
+          responseStatus: response.status,
+          responseStatusText: response.statusText,
+          responseText: responseText.substring(0, 1000),
+          responseData: data,
+          contentType: contentType
+        });
+      }
+      
+      return NextResponse.json(
+        { 
+          message: data?.message || responseText || `Неверный формат запроса к ${path}. Проверьте отправляемые данные.`,
+          details: process.env.NODE_ENV === 'development' ? {
+            url,
+            requestBody: body,
+            responseText: responseText.substring(0, 500),
+            responseData: data
+          } : undefined
+        },
+        { status: 400 }
+      );
     }
 
     // Если статус 500, возвращаем более информативное сообщение
@@ -170,9 +217,57 @@ async function handleRequest(
         );
       }
       
+      // Логируем детали ошибки для POST запросов
+      if (method === 'POST' && path === 'users/me/courses') {
+        const authToken = authHeader ? authHeader.replace('Bearer ', '').substring(0, 10) + '...' : 'нет';
+        const errorDetails = {
+          externalUrl: url,
+          requestBody: body,
+          requestHeaders: { ...headers, Authorization: 'Bearer ***' },
+          hasAuthHeader: !!authHeader,
+          authTokenPreview: authToken,
+          responseStatus: response.status,
+          responseStatusText: response.statusText,
+          responseText: responseText.substring(0, 1000), // Первые 1000 символов
+          responseData: data,
+          contentType: contentType,
+          allResponseHeaders: Object.fromEntries(response.headers.entries())
+        };
+        console.error('❌ Ошибка 500 при добавлении курса:', JSON.stringify(errorDetails, null, 2));
+        
+        // Проверяем, не является ли это сообщением о том, что курс уже добавлен
+        const message = data?.message || responseText || '';
+        if (message.includes('уже был добавлен') || message.includes('уже добавлен') || message.includes('already added')) {
+          // Возвращаем 200 с информативным сообщением
+          return NextResponse.json(
+            { 
+              message: message,
+              alreadyAdded: true
+            },
+            { status: 200 }
+          );
+        }
+        
+        // Возвращаем более детальную информацию об ошибке
+        return NextResponse.json(
+          { 
+            message: data?.message || responseText || `Ошибка сервера при запросе к ${path}. Проверьте правильность эндпоинта и параметров запроса.`,
+            details: process.env.NODE_ENV === 'development' ? {
+              url,
+              requestBody: body,
+              responseText: responseText.substring(0, 500),
+              responseData: data,
+              responseStatus: response.status,
+              responseStatusText: response.statusText
+            } : undefined
+          },
+          { status: 500 }
+        );
+      }
+      
       return NextResponse.json(
         { 
-          message: data?.message || `Ошибка сервера при запросе к ${path}. Проверьте правильность эндпоинта и параметров запроса.` 
+          message: data?.message || responseText || `Ошибка сервера при запросе к ${path}. Проверьте правильность эндпоинта и параметров запроса.` 
         },
         { status: 500 }
       );
@@ -180,6 +275,13 @@ async function handleRequest(
 
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
+    console.error('Ошибка в handleRequest:', {
+      path,
+      method,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    
     if (error instanceof TypeError && error.message.includes('fetch')) {
       return NextResponse.json(
         { message: 'Не удалось подключиться к API серверу. Проверьте URL и убедитесь, что сервер запущен.' },

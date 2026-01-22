@@ -48,8 +48,10 @@ export const authApi = {
 // Users
 export const usersApi = {
   getMe: () => api.get<User>('/users/me'),
-  addCourse: (courseId: string) =>
-    api.post('/users/me/courses', { courseId }),
+  addCourse: (courseId: string) => {
+    // Убеждаемся, что отправляем правильный формат данных
+    return api.post('/users/me/courses', { courseId });
+  },
   removeCourse: (courseId: string) =>
     api.delete(`/users/me/courses/${courseId}`),
 };
