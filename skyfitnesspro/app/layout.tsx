@@ -5,6 +5,9 @@ import { Providers } from './Providers';
 export const metadata: Metadata = {
   title: 'SkyFitnessPro',
   description: 'Онлайн-тренировки для занятий дома',
+  icons: {
+    icon: '/img/logo.svg',
+  },
 };
 
 export default function RootLayout({

@@ -70,6 +70,14 @@
 
 .progressItem label {
   font-weight: 500;
+  font-size: 16px;
+  color: #000000;
+}
+
+.targetQuantity {
+  font-weight: 400;
+  color: #666666;
+  font-size: 14px;
 }
 
 .input {

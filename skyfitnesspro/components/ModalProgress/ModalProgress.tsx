@@ -9,6 +9,7 @@ interface ModalProgressProps {
   courseId: string;
   workoutId: string;
   initialProgress: number[];
+  exercises?: Array<{ name: string; quantity: number; _id?: string }>;
   onSaveProgress: (progress: number[]) => void;
   onClose: () => void;
 }
@@ -17,6 +18,7 @@ export default function ModalProgress({
   courseId,
   workoutId,
   initialProgress,
+  exercises = [],
   onSaveProgress,
   onClose,
 }: ModalProgressProps) {
@@ -58,18 +60,33 @@ export default function ModalProgress({
         <h2 className={styles.title}>Заполните свой прогресс</h2>
         {error && <p className={styles.error}>{error}</p>}
         <div className={styles.progressList}>
-          {progress.map((value, index) => (
-            <div key={index} className={styles.progressItem}>
-              <label>Упражнение {index + 1}</label>
-              <input
-                type="number"
-                min="0"
-                value={value}
-                onChange={(e) => handleChange(index, parseInt(e.target.value) || 0)}
-                className={styles.input}
-              />
-            </div>
-          ))}
+          {progress.map((value, index) => {
+            const exercise = exercises[index];
+            const exerciseName = exercise?.name || `Упражнение ${index + 1}`;
+            const targetQuantity = exercise?.quantity || 0;
+            
+            return (
+              <div key={index} className={styles.progressItem}>
+                <label>
+                  {exerciseName}
+                  {targetQuantity > 0 && (
+                    <span className={styles.targetQuantity}>
+                      {' '}(цель: {targetQuantity})
+                    </span>
+                  )}
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max={targetQuantity > 0 ? targetQuantity : undefined}
+                  value={value}
+                  onChange={(e) => handleChange(index, parseInt(e.target.value) || 0)}
+                  className={styles.input}
+                  placeholder="0"
+                />
+              </div>
+            );
+          })}
         </div>
         <div className={styles.buttons}>
           <button

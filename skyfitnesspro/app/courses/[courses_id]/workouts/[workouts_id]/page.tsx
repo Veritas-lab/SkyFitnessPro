@@ -1,26 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useState, useMemo } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { AxiosError } from 'axios';
 import styles from './workouts.module.css';
-import { useAppSelector } from '@/store/store';
+import { useAuth } from '@/hooks/useAuth';
 import { Workout } from '@/lib/types';
-import { workoutsApi, progressApi } from '@/lib/api';
-import Header from '@/components/Header/Header';
-import BaseButton from '@/components/Button/Button';
+import { workoutsApi, progressApi, coursesApi } from '@/lib/api';
+import Logo from '@/components/Logo/Logo';
 import ModalProgress from '@/components/ModalProgress/ModalProgress';
+import { getErrorMessage } from '@/lib/utils';
 
 export default function WorkoutPage() {
   const params = useParams<{ courses_id: string; workouts_id: string }>();
-  const { allCourses } = useAppSelector((state) => state.course);
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
   const workoutId = params.workouts_id;
   const courseId = params.courses_id;
-  const targetCourse = allCourses.find((course) => course._id === courseId);
-  const courseName = targetCourse
-    ? targetCourse.nameRU
-    : 'Название курса не найдено';
-  const token = useAppSelector((state) => state.auth.token);
+  const [courseName, setCourseName] = useState<string>('Тренировка');
   const [workoutData, setWorkoutData] = useState<Workout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -28,16 +26,41 @@ export default function WorkoutPage() {
   const [currentProgress, setCurrentProgress] = useState<number[]>([]);
 
   useEffect(() => {
-    if (!workoutId) {
+    if (!workoutId || !courseId) {
       setIsLoading(false);
       return;
     }
 
     const loadWorkout = async () => {
       try {
+        setIsLoading(true);
+        setErrorMessage('');
+        
+        // Загружаем данные курса для получения названия
+        try {
+          const courseResponse = await coursesApi.getById(courseId);
+          setCourseName(courseResponse.data.nameRU || 'Тренировка');
+        } catch (courseError) {
+          // Если не удалось загрузить курс, используем дефолтное название
+          console.warn('Не удалось загрузить данные курса:', courseError);
+        }
+
         // Загружаем данные тренировки
         const workoutResponse = await workoutsApi.getById(workoutId);
         const workout = workoutResponse.data;
+        
+        // Детальное логирование для отладки
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📦 Полный ответ от API тренировки:', workoutResponse);
+          console.log('📦 Данные тренировки:', workout);
+          console.log('📹 Поле video:', workout.video);
+          console.log('📹 Тип video:', typeof workout.video);
+          if (workout.video) {
+            console.log('📹 Длина video:', workout.video.length);
+            console.log('📹 Первые 100 символов video:', workout.video.substring(0, 100));
+          }
+        }
+        
         setWorkoutData(workout);
 
         // Инициализируем прогресс нулями
@@ -45,44 +68,113 @@ export default function WorkoutPage() {
         setCurrentProgress(initialProgress);
 
         // Загружаем прогресс пользователя, если авторизован
-        if (token && courseId) {
+        if (isAuthenticated && courseId) {
           try {
             const progressResponse = await progressApi.getWorkoutProgress(
               courseId,
               workoutId
             );
             const progress = progressResponse.data;
-            if (progress.progressData && progress.progressData.length > 0) {
+            if (progress.progressData && Array.isArray(progress.progressData) && progress.progressData.length > 0) {
               setCurrentProgress(progress.progressData);
             }
           } catch (progressError) {
             // Если прогресс не найден, используем нули
+            console.warn('Не удалось загрузить прогресс:', progressError);
           }
         }
       } catch (error: unknown) {
-        if (error instanceof AxiosError && error.response) {
-          setErrorMessage(
-            error.response.data.message || 'Ошибка загрузки тренировки',
-          );
-        } else {
-          setErrorMessage('Ошибка сети или неизвестная ошибка.');
-        }
+        const errorMsg = getErrorMessage(error);
+        setErrorMessage(errorMsg || 'Ошибка загрузки тренировки');
       } finally {
         setIsLoading(false);
       }
     };
 
     loadWorkout();
-  }, [workoutId, courseId, token]);
+  }, [workoutId, courseId, isAuthenticated]);
 
   const workoutName = workoutData?.name || 'Тренировка';
   const videoUrl = workoutData?.video;
+  
+  // Используем оригинальный embed URL из API, если он уже в правильном формате
+  // Или извлекаем ID и формируем новый embed URL
+  const embedUrl = useMemo(() => {
+    if (!videoUrl) return null;
+    
+    const cleanUrl = String(videoUrl).trim();
+    
+    // Если это уже embed URL, используем его как есть (но добавляем параметры для лучшей совместимости)
+    if (cleanUrl.includes('youtube.com/embed/')) {
+      // Если в URL уже есть параметры, добавляем наши к существующим
+      const separator = cleanUrl.includes('?') ? '&' : '?';
+      return `${cleanUrl}${separator}rel=0&modestbranding=1&controls=1`;
+    }
+    
+    // Если это watch URL, извлекаем ID и формируем embed URL
+    if (cleanUrl.includes('youtube.com/watch')) {
+      const match = cleanUrl.match(/[?&]v=([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        return `https://www.youtube.com/embed/${match[1]}?rel=0&modestbranding=1&controls=1`;
+      }
+    }
+    
+    // Если это короткий URL youtu.be, извлекаем ID
+    if (cleanUrl.includes('youtu.be/')) {
+      const match = cleanUrl.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        return `https://www.youtube.com/embed/${match[1]}?rel=0&modestbranding=1&controls=1`;
+      }
+    }
+    
+    // Если это только ID (11 символов), формируем embed URL
+    if (cleanUrl.match(/^[a-zA-Z0-9_-]{11}$/)) {
+      return `https://www.youtube.com/embed/${cleanUrl}?rel=0&modestbranding=1&controls=1`;
+    }
+    
+    // В остальных случаях возвращаем null
+    return null;
+  }, [videoUrl]);
+  
+  // Логируем для отладки
+  if (process.env.NODE_ENV === 'development') {
+    console.log('📹 Исходный videoUrl:', videoUrl);
+    console.log('📹 Embed URL для iframe:', embedUrl);
+  }
+
+  // Получаем имя пользователя из email
+  const getUserName = () => {
+    if (!user?.email) return '';
+    const emailParts = user.email.split('@');
+    const namePart = emailParts[0];
+    const nameBeforeDot = namePart.split('.')[0];
+    const capitalizedName = nameBeforeDot.charAt(0).toUpperCase() + nameBeforeDot.slice(1);
+    if (capitalizedName.length < 2 || /\d/.test(capitalizedName)) {
+      return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    }
+    return capitalizedName;
+  };
 
   if (isLoading) {
     return (
       <div className={styles.workoutContainer}>
-        <Header />
-        <div style={{ padding: '40px', textAlign: 'center' }}>
+        <header className={styles.header}>
+          <Logo />
+          {isAuthenticated && user && (
+            <div className={styles.userHeader}>
+              <Image
+                src="/img/Profile.svg"
+                alt="profile"
+                width={50}
+                height={50}
+              />
+              <span className={styles.userHeaderName}>
+                {getUserName() || user.email || 'Пользователь'}
+              </span>
+            </div>
+          )}
+        </header>
+        <div className={styles.loading}>
           <p>Загрузка данных тренировки...</p>
         </div>
       </div>
@@ -92,8 +184,23 @@ export default function WorkoutPage() {
   if (errorMessage || !workoutData) {
     return (
       <div className={styles.workoutContainer}>
-        <Header />
-        <div style={{ padding: '40px', textAlign: 'center', color: '#ff0000' }}>
+        <header className={styles.header}>
+          <Logo />
+          {isAuthenticated && user && (
+            <div className={styles.userHeader}>
+              <Image
+                src="/img/Profile.svg"
+                alt="profile"
+                width={50}
+                height={50}
+              />
+              <span className={styles.userHeaderName}>
+                {getUserName() || user.email || 'Пользователь'}
+              </span>
+            </div>
+          )}
+        </header>
+        <div className={styles.error}>
           <p>Ошибка: {errorMessage || 'Данные тренировки не найдены.'}</p>
         </div>
       </div>
@@ -110,22 +217,40 @@ export default function WorkoutPage() {
 
   return (
     <div className={styles.workoutContainer}>
-      <Header />
+      <header className={styles.header}>
+        <Logo />
+        {isAuthenticated && user && (
+          <div className={styles.userHeader}>
+            <Image
+              src="/img/Profile.svg"
+              alt="profile"
+              width={50}
+              height={50}
+            />
+            <span className={styles.userHeaderName}>
+              {getUserName() || user.email || 'Пользователь'}
+            </span>
+          </div>
+        )}
+      </header>
 
       <h1 className={styles.workoutTitle}>{courseName}</h1>
 
       <div className={styles.videoBlock}>
-        {videoUrl ? (
+        {embedUrl ? (
           <iframe
-            width="100%"
-            height="639px"
-            src={videoUrl}
-            title={workoutName}
+            src={embedUrl}
+            className={styles.videoIframe}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
-          ></iframe>
+            title={workoutName}
+            frameBorder="0"
+            loading="lazy"
+          />
         ) : (
-          <p style={{ color: 'black' }}>Ссылка на видео отсутствует.</p>
+          <div className={styles.noVideo}>
+            <p>Ссылка на видео отсутствует.</p>
+          </div>
         )}
       </div>
 
@@ -136,33 +261,38 @@ export default function WorkoutPage() {
         <ul className={styles.exercisesBlockUl}>
           {workoutData.exercises.map((exercise, index: number) => {
             const progressValue = currentProgress[index] || 0;
-            const progressPercentage = workoutData.exercises[index]?.quantity
-              ? Math.round((progressValue / workoutData.exercises[index].quantity) * 100)
-              : 0;
+            const targetQuantity = workoutData.exercises[index]?.quantity || 1;
+            const progressPercentage = Math.min(
+              Math.round((progressValue / targetQuantity) * 100),
+              100
+            );
             
             return (
               <li className={styles.exercisesBlockList} key={exercise._id || index}>
-                {exercise.name} {progressPercentage}%
+                <span className={styles.exerciseName}>{exercise.name}</span>
+                <span className={styles.exerciseProgress}>{progressPercentage}%</span>
               </li>
             );
           })}
         </ul>
-        <BaseButton
-          disabled={isLoading}
+        <button
+          className={styles.progressButton}
           onClick={openWorkOut}
-          fullWidth={false}
-          text="Заполнить свой прогресс"
-        />
-        {isModalOpen ? (
+          disabled={isLoading}
+        >
+          Заполнить свой прогресс
+        </button>
+        {isModalOpen && workoutData && (
           <ModalProgress
             key={workoutId}
             courseId={courseId}
             workoutId={workoutId}
             initialProgress={currentProgress}
+            exercises={workoutData.exercises}
             onSaveProgress={handleSaveProgress}
             onClose={() => setIsModalOpen(false)}
           />
-        ) : null}
+        )}
       </div>
     </div>
   );
