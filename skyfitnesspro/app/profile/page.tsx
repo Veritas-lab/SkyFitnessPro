@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getErrorMessage } from '@/lib/utils';
 import Logo from '@/components/Logo/Logo';
 import ModalUser from '@/components/ModalUser/ModalUser';
+import ModalWorkouts from '@/components/ModalWorkouts/ModalWorkouts';
 import styles from './profile.module.css';
 
 // Маппинг изображений для курсов
@@ -48,6 +49,8 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [removingCourseId, setRemovingCourseId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWorkoutsModalOpen, setIsWorkoutsModalOpen] = useState(false);
+  const [selectedCourseForWorkout, setSelectedCourseForWorkout] = useState<{ id: string; name: string } | null>(null);
   const loadingRef = useRef(false);
 
   // Получаем имя пользователя из email
@@ -279,57 +282,14 @@ export default function ProfilePage() {
     return { completed, total, percentage, isCompleted: progress.courseCompleted || false };
   };
 
-  // Функция для получения первой тренировки курса или следующей незавершенной
-  const getFirstWorkout = useCallback(async (courseId: string): Promise<string | null> => {
-    try {
-      const workoutsRes = await coursesApi.getWorkouts(courseId);
-      const workouts = workoutsRes.data;
-      
-      if (!workouts || workouts.length === 0) {
-        return null;
-      }
-
-      // Получаем прогресс курса напрямую из progressMap
-      const progress = progressMap[courseId];
-      
-      // Если есть прогресс, ищем первую незавершенную тренировку
-      if (progress && progress.workoutsProgress && Array.isArray(progress.workoutsProgress)) {
-        // Находим первую незавершенную тренировку
-        for (const workout of workouts) {
-          const workoutProgress = progress.workoutsProgress.find(
-            (wp) => wp.workoutId === workout._id
-          );
-          if (!workoutProgress || !workoutProgress.workoutCompleted) {
-            return workout._id;
-          }
-        }
-      }
-      
-      // Если все завершены или прогресса нет, возвращаем первую тренировку
-      return workouts[0]._id;
-    } catch (err) {
-      console.error('Ошибка при загрузке тренировок:', err);
-      return null;
-    }
-  }, [progressMap]);
-
   // Обработчик клика на "Начать тренировки" или "Продолжить"
-  const handleStartWorkout = useCallback(async (courseId: string, e: React.MouseEvent) => {
+  const handleStartWorkout = useCallback((courseId: string, courseName: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    try {
-      const workoutId = await getFirstWorkout(courseId);
-      if (workoutId) {
-        router.push(`/courses/${courseId}/workouts/${workoutId}`);
-      } else {
-        alert('Тренировки для этого курса не найдены');
-      }
-    } catch (err) {
-      alert('Ошибка при загрузке тренировок');
-      console.error(err);
-    }
-  }, [getFirstWorkout, router]);
+    setSelectedCourseForWorkout({ id: courseId, name: courseName });
+    setIsWorkoutsModalOpen(true);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -530,7 +490,7 @@ export default function ProfilePage() {
                       ) : (
                         <button
                           className={styles.actionButton}
-                          onClick={(e) => handleStartWorkout(course._id, e)}
+                          onClick={(e) => handleStartWorkout(course._id, course.nameRU, e)}
                         >
                           {courseProgress.completed > 0 ? 'Продолжить' : 'Начать тренировки'}
                         </button>
@@ -543,6 +503,17 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+      
+      {isWorkoutsModalOpen && selectedCourseForWorkout && (
+        <ModalWorkouts
+          courseId={selectedCourseForWorkout.id}
+          courseName={selectedCourseForWorkout.name}
+          onClose={() => {
+            setIsWorkoutsModalOpen(false);
+            setSelectedCourseForWorkout(null);
+          }}
+        />
+      )}
     </div>
   );
 }

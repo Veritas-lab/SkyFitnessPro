@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SkyFitness Pro
 
-## Getting Started
+Приложение для онлайн-тренировок.
 
-First, run the development server:
+## Технологии
+
+- Next.js 16.1.2
+- React 19.2.3
+- TypeScript
+- Redux Toolkit
+- Axios
+- Zod для валидации
+- Jest для тестирования
+
+## Установка
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Запуск
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Разработка
+pnpm dev
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Сборка
+pnpm build
 
-## Learn More
+# Продакшн
+pnpm start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Тестирование
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Проект использует Jest для unit-тестирования.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Запуск тестов
 
-## Deploy on Vercel
+```bash
+# Запустить все тесты
+pnpm test
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Запустить тесты в watch режиме
+pnpm test:watch
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Запустить тесты с покрытием
+pnpm test:coverage
+```
+
+### Структура тестов
+
+Тесты находятся в директориях `__tests__` рядом с тестируемыми файлами:
+
+- `lib/__tests__/` - тесты для утилит и API
+- `components/*/__tests__/` - тесты для компонентов
+- `store/features/__tests__/` - тесты для Redux slices
+
+### Покрытие
+
+Минимальные пороги покрытия:
+- branches: 50%
+- functions: 50%
+- lines: 50%
+- statements: 50%
+
+## Линтинг и форматирование
+
+```bash
+# Линтинг
+pnpm lint
+
+# Форматирование
+pnpm format
+```
