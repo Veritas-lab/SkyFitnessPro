@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -53,8 +53,8 @@ export default function ProfilePage() {
   const [selectedCourseForWorkout, setSelectedCourseForWorkout] = useState<{ id: string; name: string } | null>(null);
   const loadingRef = useRef(false);
 
-  // Получаем имя пользователя из email
-  const getUserName = () => {
+  // Получаем имя пользователя из email (мемоизировано)
+  const userName = useMemo(() => {
     if (!user?.email) return '';
     const emailParts = user.email.split('@');
     const namePart = emailParts[0];
@@ -72,13 +72,12 @@ export default function ProfilePage() {
     }
     
     return capitalizedName;
-  };
+  }, [user?.email]);
 
-  // Получаем логин (email)
-  const getUserLogin = () => {
-    // Возвращаем полный email как логин, если он доступен
+  // Получаем логин (email) (мемоизировано)
+  const userLogin = useMemo(() => {
     return user?.email || '';
-  };
+  }, [user?.email]);
 
 
   const loadUserCourses = useCallback(async () => {
@@ -87,19 +86,29 @@ export default function ProfilePage() {
     if (!user?.selectedCourses || user.selectedCourses.length === 0) {
       setLoading(false);
       setCourses([]);
+      setProgressMap({});
       return;
     }
 
     try {
       loadingRef.current = true;
-      setLoading(true);
       setError(null);
       
-      // Загружаем данные курсов и прогресс параллельно
+      // Показываем loading только если курсов еще нет
+      setLoading(true);
+      
+      // Сначала загружаем курсы быстро
       const coursePromises = user.selectedCourses.map((courseId) =>
         coursesApi.getById(courseId)
       );
       
+      // Показываем курсы сразу после загрузки
+      const coursesRes = await Promise.all(coursePromises);
+      const coursesData = coursesRes.map((res) => res.data);
+      setCourses(coursesData);
+      setLoading(false); // Убираем loading сразу после загрузки курсов
+
+      // Прогресс загружаем в фоне, не блокируя UI
       const progressPromises = user.selectedCourses.map((courseId) =>
         progressApi
           .getCourseProgress(courseId)
@@ -107,68 +116,42 @@ export default function ProfilePage() {
           .catch(() => null)
       );
 
-      // Загружаем курсы и прогресс параллельно
-      const [coursesRes, progressResults] = await Promise.all([
-        Promise.all(coursePromises),
-        Promise.all(progressPromises)
-      ]);
-
-      // Сразу показываем курсы
-      const coursesData = coursesRes.map((res) => res.data);
-      setCourses(coursesData);
-
-      // Обновляем прогресс
-      const progressMapData: Record<string, CourseProgress> = {};
-      progressResults.forEach((result) => {
-        if (result) {
-          progressMapData[result.courseId] = result.progress;
-        }
+      // Обновляем прогресс асинхронно
+      Promise.all(progressPromises).then((progressResults) => {
+        const progressMapData: Record<string, CourseProgress> = {};
+        progressResults.forEach((result) => {
+          if (result) {
+            progressMapData[result.courseId] = result.progress;
+          }
+        });
+        setProgressMap(progressMapData);
       });
-      setProgressMap(progressMapData);
     } catch (err) {
       setError(getErrorMessage(err));
-    } finally {
       setLoading(false);
+    } finally {
       loadingRef.current = false;
     }
   }, [user?.selectedCourses]);
 
-  // Загружаем данные пользователя при монтировании, если их нет
-  useEffect(() => {
-    if (isAuthenticated && !authLoading && refreshUser) {
-      // Если данных пользователя нет, загружаем их
-      if (!user || !user.email) {
-        refreshUser();
-      }
-    }
-  }, [isAuthenticated, authLoading, user, refreshUser]);
-
-  useEffect(() => {
-    if (!authLoading) {
-      if (!isAuthenticated) {
-        router.push('/');
-        return;
-      }
-      // Загружаем курсы только если есть выбранные курсы
-      if (user?.selectedCourses && user.selectedCourses.length > 0) {
-        loadUserCourses();
-      } else {
-        setLoading(false);
-        setCourses([]);
-        setProgressMap({});
-      }
-    }
-  }, [isAuthenticated, authLoading, router, loadUserCourses, user?.selectedCourses]);
-
-  // Обновляем курсы при изменении selectedCourses пользователя
-  // Используем useRef для отслеживания предыдущего значения, чтобы избежать лишних перезагрузок
+  // Отслеживаем предыдущие selectedCourses для предотвращения лишних загрузок
   const prevSelectedCoursesRef = useRef<string>('');
-  
+
+  // Единый эффект для загрузки данных пользователя и курсов
   useEffect(() => {
-    if (isAuthenticated && !authLoading && user) {
+    if (authLoading) return;
+
+    // Если пользователь не авторизован, перенаправляем
+    if (!isAuthenticated) {
+      router.push('/');
+      return;
+    }
+
+    // Если пользователь загружен, работаем с курсами
+    if (user) {
       const userCourseIds = (user.selectedCourses || []).sort().join(',');
       
-      // Если список курсов изменился, перезагружаем их
+      // Загружаем курсы только если список изменился
       if (prevSelectedCoursesRef.current !== userCourseIds) {
         prevSelectedCoursesRef.current = userCourseIds;
         
@@ -177,42 +160,46 @@ export default function ProfilePage() {
         } else {
           setCourses([]);
           setProgressMap({});
+          setLoading(false);
         }
       }
+    } else if (isAuthenticated && refreshUser) {
+      // Загружаем данные пользователя в фоне, не блокируя UI
+      refreshUser();
     }
-  }, [user, isAuthenticated, authLoading, loadUserCourses]);
+  }, [isAuthenticated, authLoading, user, refreshUser, router, loadUserCourses]);
 
   const handleRemoveCourse = async (courseId: string) => {
     if (!confirm('Вы уверены, что хотите удалить этот курс?')) return;
 
+    // Оптимистичное обновление UI
+    const courseToRemove = courses.find(c => c._id === courseId);
+    setRemovingCourseId(courseId);
+    setCourses((prevCourses) => prevCourses.filter((course) => course._id !== courseId));
+    setProgressMap((prevProgress) => {
+      const newProgress = { ...prevProgress };
+      delete newProgress[courseId];
+      return newProgress;
+    });
+
     try {
-      setRemovingCourseId(courseId);
       await usersApi.removeCourse(courseId);
       
-      // Обновляем данные пользователя, чтобы получить актуальный список selectedCourses
+      // Обновляем данные пользователя в фоне
       if (refreshUser) {
-        await refreshUser();
-      }
-      
-      // Удаляем курс из локального состояния сразу, чтобы UI обновился быстрее
-      setCourses((prevCourses) => prevCourses.filter((course) => course._id !== courseId));
-      setProgressMap((prevProgress) => {
-        const newProgress = { ...prevProgress };
-        delete newProgress[courseId];
-        return newProgress;
-      });
-      
-      // Перезагружаем курсы, чтобы убедиться, что данные синхронизированы
-      // Это также обновит список, если пользователь уже обновился через refreshUser
-      if (user?.selectedCourses && user.selectedCourses.length > 0) {
-        await loadUserCourses();
+        refreshUser().catch(() => {
+          // В случае ошибки восстанавливаем курс
+          if (courseToRemove) {
+            setCourses((prev) => [...prev, courseToRemove]);
+          }
+        });
       }
     } catch (err) {
-      alert(getErrorMessage(err));
-      // В случае ошибки перезагружаем курсы, чтобы восстановить состояние
-      if (user?.selectedCourses && user.selectedCourses.length > 0) {
-        await loadUserCourses();
+      // В случае ошибки восстанавливаем курс
+      if (courseToRemove) {
+        setCourses((prev) => [...prev, courseToRemove]);
       }
+      alert(getErrorMessage(err));
     } finally {
       setRemovingCourseId(null);
     }
@@ -236,7 +223,8 @@ export default function ProfilePage() {
     }
   };
 
-  const getCourseImage = (course: Course): string => {
+  // Мемоизируем функции для получения изображений и цветов
+  const getCourseImage = useCallback((course: Course): string => {
     const nameLower = course.nameRU.toLowerCase();
     for (const [key, image] of Object.entries(courseImageMap)) {
       if (nameLower.includes(key)) {
@@ -244,9 +232,9 @@ export default function ProfilePage() {
       }
     }
     return '/img/fitness.png';
-  };
+  }, []);
 
-  const getCourseBgColor = (course: Course): string => {
+  const getCourseBgColor = useCallback((course: Course): string => {
     const nameLower = course.nameRU.toLowerCase();
     for (const [key, color] of Object.entries(bgColorMap)) {
       if (nameLower.includes(key)) {
@@ -254,17 +242,17 @@ export default function ProfilePage() {
       }
     }
     return 'bg-gray-300';
-  };
+  }, []);
 
-  const formatDuration = (days?: number): string => {
+  const formatDuration = useCallback((days?: number): string => {
     if (!days) return '25 дней';
     return `${days} ${days === 1 ? 'день' : days < 5 ? 'дня' : 'дней'}`;
-  };
+  }, []);
 
-  const formatTime = (dailyDuration?: { from: number; to: number }): string => {
+  const formatTime = useCallback((dailyDuration?: { from: number; to: number }): string => {
     if (!dailyDuration) return '20-50 мин/день';
     return `${dailyDuration.from}-${dailyDuration.to} мин/день`;
-  };
+  }, []);
 
   const getCourseProgress = (courseId: string) => {
     const progress = progressMap[courseId];
@@ -295,18 +283,10 @@ export default function ProfilePage() {
     logout();
   };
 
-  // Если пользователь не авторизован после загрузки, перенаправляем
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/');
-    }
-  }, [authLoading, isAuthenticated, router]);
 
 
-  // Если пользователь не авторизован, не показываем страницу
-  if (!authLoading && !isAuthenticated) {
-    return null;
-  }
+  // Показываем страницу сразу, даже если данные еще загружаются
+  // Это улучшает воспринимаемую производительность
 
   return (
     <div className={styles.profilePage}>
@@ -324,7 +304,7 @@ export default function ProfilePage() {
             {authLoading 
               ? 'Загрузка...' 
               : user?.email 
-                ? (getUserName() || getUserLogin()) 
+                ? (userName || userLogin) 
                 : 'Пользователь'}
           </span>
           <span className={styles.header__arrow}>
@@ -363,7 +343,9 @@ export default function ProfilePage() {
           </div>
           <div className={styles.userInfo}>
             <div className={styles.userNameContainer}>
-              <p className={styles.userNameMain}>{getUserName() || getUserLogin() || 'Пользователь'}</p>
+              <p className={styles.userNameMain}>
+                {authLoading ? 'Загрузка...' : (userName || userLogin || 'Пользователь')}
+              </p>
               <p className={styles.userName}>
                 Логин: {user?.email || (authLoading ? 'Загрузка...' : '')}
               </p>
@@ -377,16 +359,16 @@ export default function ProfilePage() {
         {/* Мои курсы */}
         <h1 className={styles.course__descTitle}>Мои курсы</h1>
         
-        {loading && courses.length === 0 ? (
-          <div className={styles.loading}>
-            <p>Загрузка курсов...</p>
-          </div>
-        ) : error ? (
+        {error ? (
           <div className={styles.error}>
             <p>Ошибка: {error}</p>
             <button onClick={loadUserCourses}>Попробовать снова</button>
           </div>
-        ) : courses.length === 0 ? (
+        ) : loading && courses.length === 0 ? (
+          <div className={styles.loading}>
+            <p>Загрузка курсов...</p>
+          </div>
+        ) : courses.length === 0 && !loading ? (
           <div className={styles.emptyState}>
             <p className={styles.emptyStateText}>
               У вас пока нет выбранных курсов.
