@@ -254,7 +254,7 @@ export default function ProfilePage() {
     return `${dailyDuration.from}-${dailyDuration.to} мин/день`;
   }, []);
 
-  const getCourseProgress = (courseId: string) => {
+  const getCourseProgress = useCallback((courseId: string) => {
     const progress = progressMap[courseId];
     // Если прогресс не загружен, возвращаем начальные значения
     if (!progress) {
@@ -268,7 +268,7 @@ export default function ProfilePage() {
     const total = progress.workoutsProgress.length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
     return { completed, total, percentage, isCompleted: progress.courseCompleted || false };
-  };
+  }, [progressMap]);
 
   // Обработчик клика на "Начать тренировки" или "Продолжить"
   const handleStartWorkout = useCallback((courseId: string, courseName: string, e: React.MouseEvent) => {
@@ -451,11 +451,23 @@ export default function ProfilePage() {
                     <div className={styles.progressSection}>
                       <p className={styles.progressText}>
                         Прогресс {courseProgress.percentage}%
+                        {courseProgress.total > 0 && (
+                          <span className={styles.progressDetails}>
+                            {' '}({courseProgress.completed}/{courseProgress.total})
+                          </span>
+                        )}
                       </p>
                       <div className={styles.progressBar}>
                         <div
                           className={styles.progressFill}
-                          style={{ width: `${courseProgress.percentage}%` }}
+                          style={{ 
+                            width: `${Math.max(0, Math.min(100, courseProgress.percentage))}%`,
+                            opacity: courseProgress.percentage > 0 ? 1 : 0
+                          }}
+                          role="progressbar"
+                          aria-valuenow={courseProgress.percentage}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
                         />
                       </div>
                     </div>

@@ -348,6 +348,15 @@
   font-weight: 400;
   color: #000;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.progressDetails {
+  font-size: 14px;
+  color: #666;
+  font-weight: 300;
 }
 
 .progressBar {
@@ -356,12 +365,26 @@
   background-color: #e5e7eb;
   border-radius: 4px;
   overflow: hidden;
+  position: relative;
 }
 
 .progressFill {
   height: 100%;
-  background-color: #60a5fa;
-  transition: width 0.3s ease;
+  background-color: #bcec30;
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0;
+  position: relative;
+  box-shadow: 0 0 8px rgba(188, 236, 48, 0.4);
+}
+
+/* Анимация заполнения при загрузке */
+.progressFill[style*="width: 0%"] {
+  width: 0% !important;
+}
+
+.progressFill[style*="width: 100%"] {
+  background: linear-gradient(90deg, #bcec30 0%, #a8d228 100%);
 }
 
 /* Кнопка действия */
