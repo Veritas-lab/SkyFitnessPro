@@ -7,6 +7,10 @@ import { coursesApi, usersApi } from '@/lib/api';
 import { Course } from '@/lib/types';
 import { useAuth } from '@/hooks/useAuth';
 import { getErrorMessage } from '@/lib/utils';
+import { useModal } from '@/context/ModalContext';
+import styles from './page.module.css';
+import PromoBanner from '@/components/PromoBanner/PromoBanner';
+import Header from '@/components/Header/Header';
 
 // Маппинг изображений для курсов
 const courseImageMap: Record<string, string> = {
@@ -36,25 +40,39 @@ const bgColorMap: Record<string, string> = {
 };
 
 export default function Home() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, refreshUser } = useAuth();
+  const { openLogin } = useModal();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addingCourseId, setAddingCourseId] = useState<string | null>(null);
   const loadingRef = useRef(false);
+  const coursesGridRef = useRef<HTMLDivElement>(null);
+  const [buttonTop, setButtonTop] = useState<number>(0);
 
   const loadCourses = useCallback(async () => {
-    // Защита от множественных одновременных запросов
     if (loadingRef.current) return;
     
     try {
       loadingRef.current = true;
       setLoading(true);
-      const res = await coursesApi.getAll();
-      setCourses(res.data);
       setError(null);
+      const res = await coursesApi.getAll();
+      if (res && res.data && Array.isArray(res.data)) {
+        setCourses(res.data);
+      } else {
+        setError('Неверный формат данных от сервера');
+      }
     } catch (err) {
-      setError(getErrorMessage(err));
+      const errorMessage = getErrorMessage(err);
+      // Если ошибка 401, не показываем её как критическую для главной страницы
+      // (курсы должны загружаться даже для неавторизованных пользователей)
+      if (!errorMessage.includes('401') && !errorMessage.includes('Unauthorized') && !errorMessage.includes('Сессия истекла')) {
+        setError(errorMessage);
+      } else {
+        // Для 401 просто не показываем ошибку, курсы должны загружаться
+        setError(null);
+      }
     } finally {
       setLoading(false);
       loadingRef.current = false;
@@ -62,34 +80,123 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // Загружаем курсы только в браузере
     if (typeof window !== 'undefined') {
       loadCourses();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadCourses]);
+
+  useEffect(() => {
+    if (coursesGridRef.current && courses.length > 0) {
+      const gridHeight = coursesGridRef.current.offsetHeight;
+      const buttonPosition = 350 + gridHeight + 34; // top карточек + высота сетки + отступ
+      setButtonTop(buttonPosition);
+    }
+  }, [courses]);
 
   const handleAddCourse = async (courseId: string) => {
-    if (!isAuthenticated) {
-      // Перенаправляем на страницу авторизации
-      window.location.href = '/auth';
+    // Проверяем наличие токена в localStorage напрямую
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    
+    // Если нет токена, открываем модальное окно логина
+    if (!token) {
+      openLogin();
       return;
     }
 
     try {
       setAddingCourseId(courseId);
       await usersApi.addCourse(courseId);
+      // Обновляем данные пользователя
+      if (refreshUser) {
+        await refreshUser();
+      }
+      // Показываем уведомление об успешном добавлении
+      // Пользователь может продолжить выбирать курсы или перейти в профиль
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      console.error('Ошибка при добавлении курса:', err);
+      
+      // Проверяем статус ошибки, если это axios error
+      const axiosError = err as { response?: { status?: number; data?: { message?: string; details?: unknown } } };
+      const status = axiosError?.response?.status;
+      const errorData = axiosError?.response?.data;
+      
+      // Если ошибка 401 (неавторизован), очищаем токен и открываем модальное окно
+      if (status === 401 || errorMessage.includes('401') || errorMessage.includes('неавторизован') || errorMessage.includes('Unauthorized')) {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('token');
+        }
+        openLogin();
+      } else if (status === 400) {
+        // Ошибка 400 - неверный формат данных
+        console.error('Детали ошибки 400:', {
+          error: err,
+          responseData: errorData,
+          courseId
+        });
+        
+        const serverMessage = errorData?.message || errorMessage;
+        const details = errorData?.details;
+        
+        let alertMessage = `Неверный формат запроса: ${serverMessage}`;
+        if (details) {
+          console.log('Детали ошибки от сервера:', details);
+          alertMessage += '\n\nПроверьте консоль браузера для дополнительной информации.';
+        }
+        
+        alert(alertMessage);
+      } else if (status === 500) {
+        // Ошибка 500 - проблема на сервере
+        console.error('Детали ошибки 500:', {
+          error: err,
+          responseData: errorData,
+          courseId
+        });
+        
+        // Показываем более информативное сообщение
+        const serverMessage = errorData?.message || errorMessage;
+        const details = errorData?.details;
+        
+        // Проверяем, не является ли это сообщением о том, что курс уже добавлен
+        if (serverMessage.includes('уже был добавлен') || serverMessage.includes('уже добавлен') || serverMessage.includes('already added')) {
+          // Обновляем данные пользователя, так как курс уже добавлен
+          if (refreshUser) {
+            await refreshUser();
+          }
+          alert('Этот курс уже добавлен в ваш профиль!');
+          return;
+        }
+        
+        let alertMessage = `Ошибка сервера при добавлении курса: ${serverMessage}`;
+        if (details) {
+          console.log('Детали ошибки от сервера:', details);
+          alertMessage += '\n\nПроверьте консоль браузера для дополнительной информации.';
+        }
+        
+        alert(alertMessage);
+      } else {
+        alert(errorMessage || 'Произошла ошибка при добавлении курса');
+      }
+    } finally {
+      setAddingCourseId(null);
+    }
+  };
+
+  const handleRemoveCourse = async (courseId: string) => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    try {
+      setAddingCourseId(courseId);
+      await usersApi.removeCourse(courseId);
       // Обновляем данные пользователя без перезагрузки страницы
-      const userRes = await usersApi.getMe();
-      // Обновляем состояние через useAuth - нужно будет добавить метод обновления
-      // Пока просто показываем успех
-      alert('Курс успешно добавлен!');
-      // Перезагружаем страницу для обновления UI
-      if (typeof window !== 'undefined') {
-        window.location.reload();
+      if (refreshUser) {
+        await refreshUser();
       }
     } catch (err) {
-      alert(getErrorMessage(err));
+      const errorMessage = getErrorMessage(err);
+      alert(errorMessage);
     } finally {
       setAddingCourseId(null);
     }
@@ -102,7 +209,7 @@ export default function Home() {
         return image;
       }
     }
-    return '/img/fitness.png'; // дефолтное изображение
+    return '/img/fitness.png';
   };
 
   const getCourseBgColor = (course: Course): string => {
@@ -129,184 +236,161 @@ export default function Home() {
     return user?.selectedCourses?.includes(courseId) || false;
   };
 
+  // Порядок курсов для отображения
+  const courseOrder = ['йога', 'стретчинг', 'фитнес', 'степ-аэробика', 'бодифлекс'];
+  
+  const sortedCourses = [...courses].sort((a, b) => {
+    const indexA = courseOrder.findIndex(order => 
+      a.nameRU.toLowerCase().includes(order.toLowerCase())
+    );
+    const indexB = courseOrder.findIndex(order => 
+      b.nameRU.toLowerCase().includes(order.toLowerCase())
+    );
+    
+    // Если курс не найден в порядке, помещаем его в конец
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    
+    return indexA - indexB;
+  });
+
   return (
-    <div className="min-h-screen bg-[#F5F5F5] font-['Roboto']">
-      <main className="relative">
-        {/* Заголовок и баннер */}
-        <div>
-          <div className="flex items-start gap-8">
-            <div className="flex-1">
-              <h1 
-                className="text-[60px] font-medium leading-[100%] text-[#000000] text-left"
-                style={{ fontFamily: 'Roboto', fontWeight: 500 }}
-              >
-                Начните заниматься спортом
-                <br />
-                и улучшите качество жизни
-              </h1>
-            </div>
-            
-            {/* Картинка справа */}
-            <div className="hidden lg:block flex-shrink-0">
-              <Image
-                src="/img/change_body.png"
-                alt="Измени своё тело"
-                width={400}
-                height={400}
-                className="object-contain"
-                priority
-              />
-            </div>
-          </div>
+    <main className={styles.home}>
+      {/* Header */}
+      <Header />
+
+      {/* Заголовок и баннер */}
+      <div className={styles.hero}>
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>
+            Начните заниматься спортом
+            <br />
+            и улучшите качество жизни
+          </h1>
+          <PromoBanner />
         </div>
+      </div>
 
-        {/* Блок карточек */}
-        {loading ? (
-          <div className="text-center py-20">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            <p className="text-gray-600 mt-4">Загрузка курсов...</p>
-          </div>
-        ) : error ? (
-          <div className="text-center py-20">
-            <p className="text-red-600">Ошибка: {error}</p>
-            <button
-              onClick={loadCourses}
-              className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              Попробовать снова
-            </button>
-          </div>
-        ) : (
-          <div
-            className="
-              grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 
-              gap-[24px]
-              mt-[50px]
-              ml-0
-            "
-            style={{ left: '140px' }}
-          >
-            {courses.map((course) => {
-              const isSelected = isCourseSelected(course._id);
-              const isAdding = addingCourseId === course._id;
+      {/* Блок карточек */}
+      {loading ? (
+        <div className={styles.loading}>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <p className="text-gray-600 mt-4">Загрузка курсов...</p>
+        </div>
+      ) : error ? (
+        <div className={styles.error}>
+          <p>Ошибка: {error}</p>
+          <button onClick={loadCourses}>
+            Попробовать снова
+          </button>
+        </div>
+      ) : (
+        <div ref={coursesGridRef} className={styles.coursesGrid}>
+          {sortedCourses.map((course, index) => {
+            const isSelected = isCourseSelected(course._id);
+            const isAdding = addingCourseId === course._id;
 
-              return (
-                <div
-                  key={course._id}
-                  className="relative rounded-[30px] overflow-hidden flex flex-col"
-                  style={{
-                    width: '360px',
-                    height: '501px',
-                  }}
-                >
-                  {/* Фото */}
-                  <div 
-                    className={`relative overflow-hidden ${getCourseBgColor(course)}`}
-                    style={{
-                      width: '360px',
-                      height: '325px',
+            return (
+              <div key={course._id} className={styles.courseCard}>
+                {/* Фото */}
+                <div className={`${styles.courseImageWrapper} ${getCourseBgColor(course)}`}>
+                  <Link href={`/courses/${course._id}`} className={styles.courseImageLink}>
+                    <Image
+                      src={getCourseImage(course)}
+                      alt={course.nameRU}
+                      fill
+                      className="object-cover cursor-pointer"
+                      sizes="(max-width: 768px) 100vw, 360px"
+                      loading={index === 0 ? "eager" : "lazy"}
+                      priority={index === 0}
+                    />
+                  </Link>
+                  
+                  {/* Иконка добавления/удаления */}
+                  <div
+                    className={styles.addIcon}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (!isAdding) {
+                        if (isSelected) {
+                          handleRemoveCourse(course._id);
+                        } else {
+                          handleAddCourse(course._id);
+                        }
+                      }
                     }}
+                    style={{ cursor: isAdding ? 'not-allowed' : 'pointer' }}
                   >
-                    <Link href={`/courses/${course._id}`}>
+                    {isAdding ? (
+                      <span>...</span>
+                    ) : (
                       <Image
-                        src={getCourseImage(course)}
-                        alt={course.nameRU}
-                        width={360}
-                        height={325}
-                        className="object-cover cursor-pointer"
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                        }}
+                        src={isSelected ? "/img/minus.svg" : "/img/plus.svg"}
+                        alt={isSelected ? "Удалить курс" : "Добавить курс"}
+                        width={26.66666603088379}
+                        height={26.66666603088379}
                       />
-                    </Link>
+                    )}
                   </div>
+                </div>
 
-                  {/* Информация */}
-                  <div 
-                    className="flex flex-col flex-1 bg-white px-6"
-                    style={{
-                      paddingBottom: '15px',
-                      gap: '24px',
-                    }}
-                  >
-                    <Link href={`/courses/${course._id}`}>
-                      <h3 className="text-xl font-semibold text-gray-800 cursor-pointer hover:text-blue-600">
-                        {course.nameRU}
-                      </h3>
-                    </Link>
+                {/* Информация */}
+                <div className={styles.courseInfo}>
+                  <Link href={`/courses/${course._id}`}>
+                    <h3 className={styles.courseTitle}>
+                      {course.nameRU}
+                    </h3>
+                  </Link>
 
-                    <div className="flex items-center text-sm text-gray-600 gap-3">
-                      <div className="flex items-center gap-2">
-                        <Image
-                          src="/img/calendar.svg"
-                          alt="Календарь"
-                          width={16}
-                          height={16}
-                        />
-                        <span>{formatDuration(course.durationInDays)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Image
-                          src="/img/clock.svg"
-                          alt="Часы"
-                          width={16}
-                          height={16}
-                        />
-                        <span>{formatTime(course.dailyDurationInMinutes)}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm text-blue-600">
+                  <div className={styles.courseMeta}>
+                    <div className={styles.courseMetaItem}>
                       <Image
-                        src="/img/complexity.svg"
-                        alt="Сложность"
+                        src="/img/calendar.svg"
+                        alt="Календарь"
                         width={16}
                         height={16}
                       />
-                      <span>Сложность</span>
+                      <span>{formatDuration(course.durationInDays)}</span>
+                    </div>
+                    <div className={styles.courseMetaItem}>
+                      <Image
+                        src="/img/clock.svg"
+                        alt="Часы"
+                        width={16}
+                        height={16}
+                      />
+                      <span>{formatTime(course.dailyDurationInMinutes)}</span>
                     </div>
                   </div>
 
-                  {/* Кнопка + */}
-                  <button
-                    onClick={() => handleAddCourse(course._id)}
-                    disabled={isSelected || isAdding}
-                    className="
-                      absolute top-5 right-5
-                      bg-white rounded-full
-                      w-10 h-10 md:w-12 md:h-12
-                      flex items-center justify-center
-                      shadow-md hover:bg-gray-100
-                      transition text-2xl md:text-3xl font-bold
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                    "
-                    title={
-                      isSelected
-                        ? 'Курс уже добавлен'
-                        : isAdding
-                        ? 'Добавление...'
-                        : 'Добавить курс'
-                    }
-                  >
-                    {isSelected ? '✓' : isAdding ? '...' : '+'}
-                  </button>
+                  <div className={styles.courseComplexity}>
+                    <Image
+                      src="/img/complexity.svg"
+                      alt="Сложность"
+                      width={16}
+                      height={16}
+                    />
+                    <span>Сложность</span>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-        {/* Кнопка Наверх */}
-        <div className="mt-16 md:mt-24 pb-12 text-center">
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="px-10 py-5 bg-[#BCEC30] hover:bg-[#a8d228] text-black font-medium rounded-full transition text-lg"
-          >
+      {/* Кнопка Наверх */}
+      {buttonTop > 0 && (
+        <div 
+          className={styles.scrollTopButton}
+          style={{ top: `${buttonTop}px` }}
+        >
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
             Наверх ↑
           </button>
         </div>
-      </main>
-    </div>
+      )}
+    </main>
   );
 }

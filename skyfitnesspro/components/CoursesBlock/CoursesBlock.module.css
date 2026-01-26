@@ -1,0 +1,33 @@
+.center__courses {
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 40px;
+  margin-top: 50px;
+  margin-bottom: 34px;
+  cursor: pointer;
+  @media screen and (max-width: 495px) {
+    justify-content: center;
+  }
+}
+
+.error {
+  color: red;
+  padding: 20px;
+  text-align: center;
+}
+
+.loading {
+  color: #666;
+  padding: 20px;
+  text-align: center;
+}
+
+.empty {
+  color: #999;
+  padding: 20px;
+  text-align: center;
+}

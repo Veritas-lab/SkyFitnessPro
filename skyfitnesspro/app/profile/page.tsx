@@ -1,13 +1,17 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 import { usersApi, coursesApi, progressApi } from '@/lib/api';
-import { User, Course, CourseProgress } from '@/lib/types';
+import { Course, CourseProgress } from '@/lib/types';
 import { useAuth } from '@/hooks/useAuth';
 import { getErrorMessage } from '@/lib/utils';
+import Logo from '@/components/Logo/Logo';
+import ModalUser from '@/components/ModalUser/ModalUser';
+import ModalWorkouts from '@/components/ModalWorkouts/ModalWorkouts';
+import styles from './profile.module.css';
 
 // Маппинг изображений для курсов
 const courseImageMap: Record<string, string> = {
@@ -38,82 +42,189 @@ const bgColorMap: Record<string, string> = {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, logout, refreshUser } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
-  const [progressMap, setProgressMap] = useState<
-    Record<string, CourseProgress>
-  >({});
-  const [loading, setLoading] = useState(true);
+  const [progressMap, setProgressMap] = useState<Record<string, CourseProgress>>({});
+  const [loading, setLoading] = useState(false); // Начинаем с false, чтобы профиль показывался сразу
   const [error, setError] = useState<string | null>(null);
+  const [removingCourseId, setRemovingCourseId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWorkoutsModalOpen, setIsWorkoutsModalOpen] = useState(false);
+  const [selectedCourseForWorkout, setSelectedCourseForWorkout] = useState<{ id: string; name: string } | null>(null);
   const loadingRef = useRef(false);
 
+  // Получаем имя пользователя из email (мемоизировано)
+  const userName = useMemo(() => {
+    if (!user?.email) return '';
+    const emailParts = user.email.split('@');
+    const namePart = emailParts[0];
+    
+    // Если в email есть точка, берем первую часть до точки
+    // Например: sergey.petrov96 -> Сергей
+    const nameBeforeDot = namePart.split('.')[0];
+    
+    // Преобразуем первую букву в заглавную
+    const capitalizedName = nameBeforeDot.charAt(0).toUpperCase() + nameBeforeDot.slice(1);
+    
+    // Если имя слишком короткое или содержит цифры, используем полную первую часть
+    if (capitalizedName.length < 2 || /\d/.test(capitalizedName)) {
+      return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    }
+    
+    return capitalizedName;
+  }, [user?.email]);
+
+  // Получаем логин (email) (мемоизировано)
+  const userLogin = useMemo(() => {
+    return user?.email || '';
+  }, [user?.email]);
+
+
   const loadUserCourses = useCallback(async () => {
-    // Защита от множественных одновременных запросов
     if (loadingRef.current) return;
     
     if (!user?.selectedCourses || user.selectedCourses.length === 0) {
       setLoading(false);
+      setCourses([]);
+      setProgressMap({});
       return;
     }
 
     try {
       loadingRef.current = true;
+      setError(null);
+      
+      // Показываем loading только если курсов еще нет
       setLoading(true);
+      
+      // Сначала загружаем курсы быстро
       const coursePromises = user.selectedCourses.map((courseId) =>
         coursesApi.getById(courseId)
       );
+      
+      // Показываем курсы сразу после загрузки
       const coursesRes = await Promise.all(coursePromises);
       const coursesData = coursesRes.map((res) => res.data);
       setCourses(coursesData);
+      setLoading(false); // Убираем loading сразу после загрузки курсов
 
-      // Загружаем прогресс для каждого курса
+      // Прогресс загружаем в фоне, не блокируя UI
       const progressPromises = user.selectedCourses.map((courseId) =>
         progressApi
           .getCourseProgress(courseId)
           .then((res) => ({ courseId, progress: res.data }))
           .catch(() => null)
       );
-      const progressResults = await Promise.all(progressPromises);
-      const progressMapData: Record<string, CourseProgress> = {};
-      progressResults.forEach((result) => {
-        if (result) {
-          progressMapData[result.courseId] = result.progress;
-        }
-      });
-      setProgressMap(progressMapData);
 
-      setError(null);
+      // Обновляем прогресс асинхронно
+      Promise.all(progressPromises).then((progressResults) => {
+        const progressMapData: Record<string, CourseProgress> = {};
+        progressResults.forEach((result) => {
+          if (result) {
+            progressMapData[result.courseId] = result.progress;
+          }
+        });
+        setProgressMap(progressMapData);
+      });
     } catch (err) {
       setError(getErrorMessage(err));
-    } finally {
       setLoading(false);
+    } finally {
       loadingRef.current = false;
     }
   }, [user?.selectedCourses]);
 
+  // Отслеживаем предыдущие selectedCourses для предотвращения лишних загрузок
+  const prevSelectedCoursesRef = useRef<string>('');
+
+  // Единый эффект для загрузки данных пользователя и курсов
   useEffect(() => {
-    if (!authLoading) {
-      if (!isAuthenticated) {
-        router.push('/auth');
-        return;
-      }
-      loadUserCourses();
+    if (authLoading) return;
+
+    // Если пользователь не авторизован, перенаправляем
+    if (!isAuthenticated) {
+      router.push('/');
+      return;
     }
-  }, [isAuthenticated, authLoading, router, loadUserCourses]);
+
+    // Если пользователь загружен, работаем с курсами
+    if (user) {
+      const userCourseIds = (user.selectedCourses || []).sort().join(',');
+      
+      // Загружаем курсы только если список изменился
+      if (prevSelectedCoursesRef.current !== userCourseIds) {
+        prevSelectedCoursesRef.current = userCourseIds;
+        
+        if (user.selectedCourses && user.selectedCourses.length > 0) {
+          loadUserCourses();
+        } else {
+          setCourses([]);
+          setProgressMap({});
+          setLoading(false);
+        }
+      }
+    } else if (isAuthenticated && refreshUser) {
+      // Загружаем данные пользователя в фоне, не блокируя UI
+      refreshUser();
+    }
+  }, [isAuthenticated, authLoading, user, refreshUser, router, loadUserCourses]);
 
   const handleRemoveCourse = async (courseId: string) => {
     if (!confirm('Вы уверены, что хотите удалить этот курс?')) return;
 
+    // Оптимистичное обновление UI
+    const courseToRemove = courses.find(c => c._id === courseId);
+    setRemovingCourseId(courseId);
+    setCourses((prevCourses) => prevCourses.filter((course) => course._id !== courseId));
+    setProgressMap((prevProgress) => {
+      const newProgress = { ...prevProgress };
+      delete newProgress[courseId];
+      return newProgress;
+    });
+
     try {
       await usersApi.removeCourse(courseId);
-      // Перезагружаем страницу для обновления данных
-      window.location.reload();
+      
+      // Обновляем данные пользователя в фоне
+      if (refreshUser) {
+        refreshUser().catch(() => {
+          // В случае ошибки восстанавливаем курс
+          if (courseToRemove) {
+            setCourses((prev) => [...prev, courseToRemove]);
+          }
+        });
+      }
+    } catch (err) {
+      // В случае ошибки восстанавливаем курс
+      if (courseToRemove) {
+        setCourses((prev) => [...prev, courseToRemove]);
+      }
+      alert(getErrorMessage(err));
+    } finally {
+      setRemovingCourseId(null);
+    }
+  };
+
+  const handleResetProgress = async (courseId: string) => {
+    if (!confirm('Вы уверены, что хотите сбросить прогресс?')) return;
+
+    try {
+      await coursesApi.resetProgress(courseId);
+      // Перезагружаем прогресс
+      const progressRes = await progressApi.getCourseProgress(courseId).catch(() => null);
+      if (progressRes) {
+        setProgressMap((prev) => ({
+          ...prev,
+          [courseId]: progressRes.data,
+        }));
+      }
     } catch (err) {
       alert(getErrorMessage(err));
     }
   };
 
-  const getCourseImage = (course: Course): string => {
+  // Мемоизируем функции для получения изображений и цветов
+  const getCourseImage = useCallback((course: Course): string => {
     const nameLower = course.nameRU.toLowerCase();
     for (const [key, image] of Object.entries(courseImageMap)) {
       if (nameLower.includes(key)) {
@@ -121,9 +232,9 @@ export default function ProfilePage() {
       }
     }
     return '/img/fitness.png';
-  };
+  }, []);
 
-  const getCourseBgColor = (course: Course): string => {
+  const getCourseBgColor = useCallback((course: Course): string => {
     const nameLower = course.nameRU.toLowerCase();
     for (const [key, color] of Object.entries(bgColorMap)) {
       if (nameLower.includes(key)) {
@@ -131,202 +242,272 @@ export default function ProfilePage() {
       }
     }
     return 'bg-gray-300';
-  };
+  }, []);
 
-  const getCourseProgress = (courseId: string) => {
+  const formatDuration = useCallback((days?: number): string => {
+    if (!days) return '25 дней';
+    return `${days} ${days === 1 ? 'день' : days < 5 ? 'дня' : 'дней'}`;
+  }, []);
+
+  const formatTime = useCallback((dailyDuration?: { from: number; to: number }): string => {
+    if (!dailyDuration) return '20-50 мин/день';
+    return `${dailyDuration.from}-${dailyDuration.to} мин/день`;
+  }, []);
+
+  const getCourseProgress = useCallback((courseId: string) => {
     const progress = progressMap[courseId];
-    if (!progress) return null;
-    const completed = progress.workoutsProgress.filter(
-      (w) => w.workoutCompleted
-    ).length;
+    // Если прогресс не загружен, возвращаем начальные значения
+    if (!progress) {
+      return { completed: 0, total: 0, percentage: 0, isCompleted: false };
+    }
+    // Проверяем, что workoutsProgress существует и является массивом
+    if (!progress.workoutsProgress || !Array.isArray(progress.workoutsProgress)) {
+      return { completed: 0, total: 0, percentage: 0, isCompleted: progress.courseCompleted || false };
+    }
+    const completed = progress.workoutsProgress.filter((w) => w.workoutCompleted).length;
     const total = progress.workoutsProgress.length;
-    return { completed, total, isCompleted: progress.courseCompleted };
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    return { completed, total, percentage, isCompleted: progress.courseCompleted || false };
+  }, [progressMap]);
+
+  // Обработчик клика на "Начать тренировки" или "Продолжить"
+  const handleStartWorkout = useCallback((courseId: string, courseName: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setSelectedCourseForWorkout({ id: courseId, name: courseName });
+    setIsWorkoutsModalOpen(true);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
   };
 
-  if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-white font-['Roboto']">
-        <main className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-[140px] pt-20">
-          <div className="text-center py-20">
-            <p className="text-gray-600">Загрузка профиля...</p>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-white font-['Roboto']">
-        <main className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-[140px] pt-20">
-          <div className="text-center py-20">
-            <p className="text-red-600">Ошибка: {error}</p>
-            <button
-              onClick={loadUserCourses}
-              className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              Попробовать снова
-            </button>
-          </div>
-        </main>
-      </div>
-    );
-  }
+
+  // Показываем страницу сразу, даже если данные еще загружаются
+  // Это улучшает воспринимаемую производительность
 
   return (
-    <div className="min-h-screen bg-white font-['Roboto']">
-      <main className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-[140px] pt-20 pb-12">
-        {/* Информация о пользователе */}
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Мой профиль</h1>
-          {user && (
-            <p className="text-lg text-gray-600">Email: {user.email}</p>
-          )}
+    <div className={styles.profilePage}>
+      {/* Header */}
+      <header className={styles.header}>
+        <Logo />
+        <div className={styles.userHeader} onClick={() => setIsModalOpen(!isModalOpen)}>
+          <Image
+            src="/img/Profile.svg"
+            alt="profile"
+            width={50}
+            height={50}
+          />
+          <span className={styles.userHeaderName}>
+            {authLoading 
+              ? 'Загрузка...' 
+              : user?.email 
+                ? (userName || userLogin) 
+                : 'Пользователь'}
+          </span>
+          <span className={styles.header__arrow}>
+            <svg
+              width="13"
+              height="8"
+              viewBox="0 0 13 8"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.0624 0.707154L6.38477 6.38477L0.707152 0.707154"
+                stroke="black"
+                strokeWidth="2"
+              />
+            </svg>
+          </span>
         </div>
+        {isModalOpen && (
+          <ModalUser onClose={() => setIsModalOpen(false)} />
+        )}
+      </header>
 
-        {/* Выбранные курсы */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">Мои курсы</h2>
-          {courses.length === 0 ? (
-            <div className="p-8 bg-gray-50 border border-gray-200 rounded-lg text-center">
-              <p className="text-gray-600 mb-4">
-                У вас пока нет выбранных курсов
+      <div className={styles.center__container}>
+        {/* Профиль пользователя */}
+        <h1 className={styles.course__descTitle}>Профиль</h1>
+        <div className={styles.userContainer}>
+          <div className={styles.userImg}>
+            <Image
+              src="/img/Big_Profile.svg"
+              alt="profile"
+              loading="eager"
+              fill
+              sizes="197px"
+            />
+          </div>
+          <div className={styles.userInfo}>
+            <div className={styles.userNameContainer}>
+              <p className={styles.userNameMain}>
+                {authLoading ? 'Загрузка...' : (userName || userLogin || 'Пользователь')}
               </p>
-              <Link
-                href="/"
-                className="inline-block px-6 py-3 bg-[#BCEC30] hover:bg-[#a8d228] text-black font-medium rounded-lg transition"
-              >
-                Выбрать курсы
-              </Link>
+              <p className={styles.userName}>
+                Логин: {user?.email || (authLoading ? 'Загрузка...' : '')}
+              </p>
             </div>
-          ) : (
-            <div
-              className="
-                grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 
-                gap-6 md:gap-8 lg:gap-[24px]
-              "
-            >
-              {courses.map((course) => {
-                const courseProgress = getCourseProgress(course._id);
-
-                return (
-                  <div
-                    key={course._id}
-                    className={`
-                      relative rounded-[30px] overflow-hidden
-                      w-full max-w-[360px] h-[501px]
-                      shadow-[0_4px_67px_-12px_rgba(0,0,0,0.13)]
-                      flex flex-col
-                      ${getCourseBgColor(course)}
-                      mx-auto lg:mx-0
-                    `}
-                  >
-                    {/* Фото */}
-                    <div className="relative h-[60%] bg-gray-200">
-                      <Link href={`/courses/${course._id}`}>
-                        <Image
-                          src={getCourseImage(course)}
-                          alt={course.nameRU}
-                          fill
-                          className="object-cover cursor-pointer"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
-                          loading="lazy"
-                          placeholder="blur"
-                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-                        />
-                      </Link>
-                    </div>
-
-                    {/* Информация */}
-                    <div className="flex flex-col flex-1 p-6 pb-[15px] bg-white gap-4">
-                      <Link href={`/courses/${course._id}`}>
-                        <h3 className="text-xl md:text-2xl font-semibold cursor-pointer hover:text-blue-600">
-                          {course.nameRU}
-                        </h3>
-                      </Link>
-
-                      <div className="flex items-center text-sm md:text-base text-gray-600 gap-3">
-                        <span>
-                          {course.durationInDays
-                            ? `${course.durationInDays} дней`
-                            : '25 дней'}
-                        </span>
-                        <span className="text-gray-400">•</span>
-                        <span>
-                          {course.dailyDurationInMinutes
-                            ? `${course.dailyDurationInMinutes.from}-${course.dailyDurationInMinutes.to} мин/день`
-                            : '20-50 мин/день'}
-                        </span>
-                      </div>
-
-                      {courseProgress && (
-                        <div className="mt-auto">
-                          <p className="text-sm text-gray-600 mb-1">
-                            Прогресс: {courseProgress.completed} из{' '}
-                            {courseProgress.total} тренировок
-                          </p>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-green-500 h-2 rounded-full transition-all"
-                              style={{
-                                width: `${
-                                  (courseProgress.completed /
-                                    courseProgress.total) *
-                                  100
-                                }%`,
-                              }}
-                            />
-                          </div>
-                          {courseProgress.isCompleted && (
-                            <p className="text-sm text-green-600 font-medium mt-1">
-                              ✓ Курс завершён
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {course.difficulty && (
-                        <div className="text-sm md:text-base text-blue-600 font-medium">
-                          {course.difficulty}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Кнопка удаления */}
-                    <button
-                      onClick={() => handleRemoveCourse(course._id)}
-                      className="
-                        absolute top-5 right-5
-                        bg-white rounded-full
-                        w-10 h-10 md:w-12 md:h-12
-                        flex items-center justify-center
-                        shadow-md hover:bg-red-100
-                        transition text-xl md:text-2xl font-bold
-                        text-red-600
-                      "
-                      title="Удалить курс"
-                    >
-                      ×
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+            <button className={styles.modal__btnLogOut} onClick={handleLogout}>
+              Выйти
+            </button>
+          </div>
         </div>
 
-        {/* Кнопка добавления курсов */}
-        {courses.length > 0 && (
-          <div className="text-center mt-8">
-            <Link
-              href="/"
-              className="inline-block px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition"
-            >
-              Добавить ещё курсы
+        {/* Мои курсы */}
+        <h1 className={styles.course__descTitle}>Мои курсы</h1>
+        
+        {error ? (
+          <div className={styles.error}>
+            <p>Ошибка: {error}</p>
+            <button onClick={loadUserCourses}>Попробовать снова</button>
+          </div>
+        ) : loading && courses.length === 0 ? (
+          <div className={styles.loading}>
+            <p>Загрузка курсов...</p>
+          </div>
+        ) : courses.length === 0 && !loading ? (
+          <div className={styles.emptyState}>
+            <p className={styles.emptyStateText}>
+              У вас пока нет выбранных курсов.
+            </p>
+            <Link href="/" className={styles.emptyStateLink}>
+              Выбрать курсы
             </Link>
           </div>
+        ) : (
+          <div className={styles.coursesGrid}>
+            {courses.map((course) => {
+              const courseProgress = getCourseProgress(course._id);
+              const isRemoving = removingCourseId === course._id;
+
+              return (
+                <div key={course._id} className={styles.courseCard}>
+                  {/* Фото с кнопкой удаления */}
+                  <div className={`${styles.courseImageWrapper} ${getCourseBgColor(course)}`}>
+                    <Link href={`/courses/${course._id}`} className={styles.courseImageLink}>
+                      <Image
+                        src={getCourseImage(course)}
+                        alt={course.nameRU}
+                        fill
+                        className={styles.courseImage}
+                        sizes="(max-width: 768px) 100vw, 360px"
+                      />
+                    </Link>
+                    <button
+                      className={styles.removeCourseButton}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRemoveCourse(course._id);
+                      }}
+                      disabled={isRemoving}
+                      title="Удалить курс"
+                    >
+                      {isRemoving ? '...' : '−'}
+                    </button>
+                  </div>
+
+                  {/* Информация */}
+                  <div className={styles.courseInfo}>
+                    <Link href={`/courses/${course._id}`}>
+                      <h3 className={styles.courseTitle}>{course.nameRU}</h3>
+                    </Link>
+
+                    <div className={styles.courseMeta}>
+                      <div className={styles.courseMetaItem}>
+                        <Image
+                          src="/img/calendar.svg"
+                          alt="Календарь"
+                          width={16}
+                          height={16}
+                        />
+                        <span>{formatDuration(course.durationInDays)}</span>
+                      </div>
+                      <div className={styles.courseMetaItem}>
+                        <Image
+                          src="/img/clock.svg"
+                          alt="Часы"
+                          width={16}
+                          height={16}
+                        />
+                        <span>{formatTime(course.dailyDurationInMinutes)}</span>
+                      </div>
+                    </div>
+
+                    <div className={styles.courseComplexity}>
+                      <Image
+                        src="/img/complexity.svg"
+                        alt="Сложность"
+                        width={16}
+                        height={16}
+                      />
+                      <span>Сложность</span>
+                    </div>
+
+                    {/* Прогресс */}
+                    <div className={styles.progressSection}>
+                      <p className={styles.progressText}>
+                        Прогресс {courseProgress.percentage}%
+                        {courseProgress.total > 0 && (
+                          <span className={styles.progressDetails}>
+                            {' '}({courseProgress.completed}/{courseProgress.total})
+                          </span>
+                        )}
+                      </p>
+                      <div className={styles.progressBar}>
+                        <div
+                          className={styles.progressFill}
+                          style={{ 
+                            width: `${Math.max(0, Math.min(100, courseProgress.percentage))}%`,
+                            opacity: courseProgress.percentage > 0 ? 1 : 0
+                          }}
+                          role="progressbar"
+                          aria-valuenow={courseProgress.percentage}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Кнопка действия */}
+                    <div className={styles.courseAction}>
+                      {courseProgress.isCompleted ? (
+                        <button
+                          className={styles.actionButton}
+                          onClick={() => handleResetProgress(course._id)}
+                        >
+                          Начать заново
+                        </button>
+                      ) : (
+                        <button
+                          className={styles.actionButton}
+                          onClick={(e) => handleStartWorkout(course._id, course.nameRU, e)}
+                        >
+                          {courseProgress.completed > 0 ? 'Продолжить' : 'Начать тренировки'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
-      </main>
+      </div>
+      
+      {isWorkoutsModalOpen && selectedCourseForWorkout && (
+        <ModalWorkouts
+          courseId={selectedCourseForWorkout.id}
+          courseName={selectedCourseForWorkout.name}
+          onClose={() => {
+            setIsWorkoutsModalOpen(false);
+            setSelectedCourseForWorkout(null);
+          }}
+        />
+      )}
     </div>
   );
 }

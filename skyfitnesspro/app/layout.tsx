@@ -1,28 +1,43 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Header from '@/components/Header';  // @/* алиас
+import { Providers } from './Providers';
 
 export const metadata: Metadata = {
   title: 'SkyFitnessPro',
   description: 'Онлайн-тренировки для занятий дома',
+  icons: {
+    icon: '/img/logo.svg',
+  },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="ru">
-      <body className="bg-[#F5F5F5]">
-        <div 
-          className="mx-auto relative"
-          style={{
-            width: '1440px',
-            minHeight: '1559px',
-          }}
-        >
-          <Header />
-          <div style={{ paddingLeft: '140px', paddingRight: '140px', paddingTop: '180px' }}>
-            {children}
+      <body className="bg-[#FAFAFA]">
+        <Providers>
+          <div 
+            className="mx-auto relative"
+            style={{
+              maxWidth: '1440px',
+              width: '100%',
+              minHeight: '100vh',
+            }}
+          >
+            <div 
+              className="relative"
+              style={{
+                width: '1440px',
+                margin: '0 auto',
+              }}
+            >
+              {children}
+            </div>
           </div>
-        </div>
+        </Providers>
       </body>
     </html>
   );

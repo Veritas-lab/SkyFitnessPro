@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { authApi, usersApi } from '@/lib/api';
 import { User } from '@/lib/types';
 import { getErrorMessage } from '@/lib/utils';
+import { useAppDispatch } from '@/store/store';
+import { setUser, setToken, logout as logoutAction } from '@/store/features/authSlice';
 
 interface AuthState {
   user: User | null;
@@ -13,6 +15,7 @@ interface AuthState {
 }
 
 export function useAuth() {
+  const dispatch = useAppDispatch();
   const [state, setState] = useState<AuthState>({
     user: null,
     isLoading: true,
@@ -54,6 +57,9 @@ export function useAuth() {
             error: null,
             isAuthenticated: true,
           });
+          // Синхронизируем с Redux
+          dispatch(setUser(res.data.email));
+          dispatch(setToken(token));
         }
       } catch (err: unknown) {
         localStorage.removeItem('token');
@@ -76,7 +82,7 @@ export function useAuth() {
     return () => {
       mountedRef.current = false;
     };
-  }, []);
+  }, [dispatch]);
 
   const login = useCallback(async (email: string, password: string) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
@@ -94,6 +100,10 @@ export function useAuth() {
         error: null,
         isAuthenticated: true,
       });
+      
+      // Синхронизируем с Redux
+      dispatch(setUser(userRes.data.email));
+      dispatch(setToken(token));
 
       router.push('/profile');
       return true;
@@ -102,7 +112,7 @@ export function useAuth() {
       setState(prev => ({ ...prev, isLoading: false, error: message }));
       return false;
     }
-  }, [router]);
+  }, [router, dispatch]);
 
   const register = useCallback(async (email: string, password: string) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
@@ -126,13 +136,54 @@ export function useAuth() {
       error: null,
       isAuthenticated: false,
     });
+    // Синхронизируем с Redux
+    dispatch(logoutAction());
     router.push('/');
-  }, [router]);
+  }, [router, dispatch]);
+
+  // Функция для обновления данных пользователя
+  const refreshUser = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+    
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      loadingRef.current = true;
+      const res = await usersApi.getMe();
+      if (mountedRef.current) {
+        setState({
+          user: res.data,
+          isLoading: false,
+          error: null,
+          isAuthenticated: true,
+        });
+        // Синхронизируем с Redux
+        dispatch(setUser(res.data.email));
+        dispatch(setToken(token));
+      }
+    } catch (err: unknown) {
+      localStorage.removeItem('token');
+      const message = getErrorMessage(err);
+      if (mountedRef.current) {
+        setState({
+          user: null,
+          isLoading: false,
+          error: message || 'Сессия истекла',
+          isAuthenticated: false,
+        });
+      }
+      dispatch(logoutAction());
+    } finally {
+      loadingRef.current = false;
+    }
+  }, [dispatch]);
 
   return {
     ...state,
     login,
     register,
     logout,
+    refreshUser,
   };
 }

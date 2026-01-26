@@ -1,0 +1,140 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  position: relative;
+  background: white;
+  width: 426px;
+  height: 595.5px;
+  border-radius: 30px;
+  padding: 40px;
+  gap: 48px;
+  opacity: 1;
+  overflow-y: auto;
+  box-shadow: 0px 4px 67px -12px #00000021;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.closeButton {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+  color: #666;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  color: #000;
+}
+
+.title {
+  font-family: 'Roboto', sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0;
+  margin-bottom: 0;
+  color: #000000;
+  line-height: 110%;
+}
+
+.error {
+  color: red;
+  margin-bottom: 16px;
+}
+
+.progressList {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.progressItem {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.question {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 110%;
+  color: #000000;
+}
+
+.input {
+  padding: 12px 16px;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: #000000;
+  background: #FFFFFF;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #BCEC30;
+}
+
+.input::placeholder {
+  color: #999999;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 0;
+}
+
+.saveButton {
+  width: 100%;
+  padding: 16px 26px;
+  background: #BCEC30;
+  border: none;
+  border-radius: 46px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 110%;
+  color: #000000;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.saveButton:hover:not(:disabled) {
+  background: #A8D028;
+}
+
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

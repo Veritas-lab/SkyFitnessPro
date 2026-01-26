@@ -1,5 +1,15 @@
 {
-	"dependencies": {
-		"@hookform/resolvers": "^5.2.2"
-	}
+  "name": "skyfitnesspro-root",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "cd skyfitnesspro && pnpm dev",
+    "build": "cd skyfitnesspro && pnpm build",
+    "start": "cd skyfitnesspro && pnpm start",
+    "lint": "cd skyfitnesspro && pnpm lint",
+    "format": "cd skyfitnesspro && pnpm format"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2"
+  }
 }

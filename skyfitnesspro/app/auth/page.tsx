@@ -1,16 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import Form from '@/components/Form';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const router = useRouter();
 
-  return (
-    <div className="min-h-screen font-['Roboto']" style={{ background: '#1a1a1a' }}>
-      <main className="flex items-center justify-center min-h-screen">
-        <Form mode={mode} onModeChange={setMode} />
-      </main>
-    </div>
-  );
+  useEffect(() => {
+    // Редирект на страницу входа по умолчанию
+    router.push('/auth/signin');
+  }, [router]);
+
+  return null;
 }

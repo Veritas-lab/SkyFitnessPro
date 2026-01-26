@@ -1,0 +1,32 @@
+'use client';
+
+import Link from 'next/link';
+import styles from './AuthButtons.module.css';
+import { useAppSelector } from '@/store/store';
+import { useModal } from '@/context/ModalContext';
+
+export default function AuthButtons() {
+  const { isAuth, user } = useAppSelector((state) => state.auth);
+  const { openLogin } = useModal();
+
+  if (isAuth) {
+    return (
+      <div className={styles.userInfo}>
+        <Link href="/main" className={styles.profileButton}>
+          {user || 'Профиль'}
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.authButtons}>
+      <button 
+        onClick={openLogin}
+        className={styles.loginButton}
+      >
+        Вход
+      </button>
+    </div>
+  );
+}

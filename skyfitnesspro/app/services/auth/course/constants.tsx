@@ -1,0 +1,1 @@
+export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://wedev-api.sky.pro/api/fitness';

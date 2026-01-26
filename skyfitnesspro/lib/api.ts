@@ -6,14 +6,32 @@ const api = axios.create({
   timeout: 10000, // 10 секунд таймаут для запросов
 });
 
-// Interceptor для token
+// Interceptor для token и удаления Content-Type
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
   }
+  // Удаляем Content-Type, так как API не поддерживает этот заголовок
+  if (config.headers['Content-Type']) {
+    delete config.headers['Content-Type'];
+  }
   return config;
 });
+
+// Interceptor для обработки ошибок ответа
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Если получили 401, очищаем токен
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Auth
 // Согласно документации API:
@@ -29,9 +47,39 @@ export const authApi = {
 
 // Users
 export const usersApi = {
-  getMe: () => api.get<User>('/users/me'),
-  addCourse: (courseId: string) =>
-    api.post('/users/me/courses', { courseId }),
+  getMe: async () => {
+    const response = await api.get<any>('/users/me');
+    
+    // Логируем ответ для отладки (только в development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📥 Ответ от /users/me:', response.data);
+    }
+    
+    // Обрабатываем разные форматы ответа от API
+    let userData: User;
+    
+    // Если ответ обернут в { user: ... }, извлекаем user
+    if (response.data && typeof response.data === 'object' && 'user' in response.data) {
+      userData = response.data.user;
+    }
+    // Если данные приходят напрямую с email и selectedCourses
+    else if (response.data && typeof response.data === 'object' && ('email' in response.data || 'selectedCourses' in response.data)) {
+      userData = {
+        email: response.data.email || '',
+        selectedCourses: response.data.selectedCourses || []
+      };
+    }
+    // Если данные уже в правильном формате
+    else {
+      userData = response.data as User;
+    }
+    
+    return { ...response, data: userData };
+  },
+  addCourse: (courseId: string) => {
+    // Убеждаемся, что отправляем правильный формат данных
+    return api.post('/users/me/courses', { courseId });
+  },
   removeCourse: (courseId: string) =>
     api.delete(`/users/me/courses/${courseId}`),
 };
